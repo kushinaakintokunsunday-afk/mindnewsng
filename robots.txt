@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kushinaakintokunsunday-afk.github.io/mindnewsng/sitemap.xml
