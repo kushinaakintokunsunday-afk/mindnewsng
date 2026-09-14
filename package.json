@@ -1,0 +1,14 @@
+{
+  "name": "mindnewsng",
+  "version": "1.0.0",
+  "description": "Mindnewsng - Nigerian News Site with automated RSS feed and static page generation",
+  "scripts": {
+    "fetch": "node scripts/fetch-rss.js",
+    "build": "node scripts/build.js",
+    "generate": "npm run fetch && npm run build",
+    "dev": "npm run build && python -m http.server 8000 --directory public"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

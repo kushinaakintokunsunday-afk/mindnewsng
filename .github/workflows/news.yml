@@ -1,0 +1,42 @@
+name: News Automation
+
+# Regular news refresh every 3 hours, plus a fast poll every 15 minutes
+# so breaking stories surface on the site quickly after sources publish them.
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # every 15 minutes  -> catches breaking news fast
+    - cron: '0 */3 * * *'    # every 3 hours     -> full refresh cycle
+  workflow_dispatch:         # lets you trigger manually from GitHub "Actions" tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: news
+  cancel-in-progress: false
+
+jobs:
+  fetch-build-deploy:
+    name: Fetch news, build site, deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch news feeds & build site
+        run: npm run generate
+
+      - name: Deploy to GitHub Pages (gh-pages branch)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages
+          user_name: 'github-actions[bot]'
+          user_email: '41898282+github-actions[bot]@users.noreply.github.com'
+          commit_message: 'Auto-update news feed (${{ github.event.schedule || 'manual' }})'

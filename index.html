@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindnewsng - Latest Nigeria News, Naija News and Breaking News Today</title>
+    <meta name="description" content="Mindnewsng is your trusted Nigerian newspaper providing Breaking News, Latest News, Politics, Sport, Business, Entertainment and International headlines.">
+    <meta name="theme-color" content="#02b290">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-top">
+            <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
+                <span class="burger-line"></span>
+                <span class="burger-line"></span>
+                <span class="burger-line"></span>
+            </button>
+            <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+            <button class="search-btn" id="searchBtn" aria-label="Search">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+        </div>
+
+        <nav class="main-nav" id="mainNav">
+            <ul>
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="pages/news.html">News</a></li>
+                <li><a href="pages/politics.html">Politics</a></li>
+                <li><a href="pages/entertainment.html">Entertainment</a></li>
+                <li><a href="pages/sports.html">Sports</a></li>
+                <li><a href="pages/business.html">Business</a></li>
+                <li><a href="pages/lifestyle.html">Lifestyle</a></li>
+                <li><a href="pages/videos.html">Videos</a></li>
+                <li><a href="pages/world.html">World News</a></li>
+            </ul>
+        </nav>
+
+        <!-- Search overlay -->
+        <div class="search-overlay" id="searchOverlay">
+            <div class="search-overlay-inner">
+                <form id="searchForm" class="search-form">
+                    <input type="text" id="searchInput" placeholder="Search news, politics, entertainment..." autocomplete="off">
+                    <button type="submit" aria-label="Search">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+                    </button>
+                </form>
+                <div class="search-results" id="searchResults"></div>
+                <button class="search-close" id="searchClose" aria-label="Close search">&times;</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breaking News Ticker -->
+    <div class="ticker">
+        <div class="ticker-label">BREAKING</div>
+        <div class="ticker-track">
+            <div class="ticker-content">
+                <span class="ticker-live-dot"></span>
+                <a href="pages/news.html">FG announces new minimum wage policy effective next month - LIVE</a>
+                <span>&#9679;</span>
+                <a href="pages/sports.html">Super Eagles qualify for AFCON after dramatic 2-1 win</a>
+                <span>&#9679;</span>
+                <a href="pages/business.html">Naira gains against dollar as CBN injects liquidity</a>
+            </div>
+        </div>
+    </div>
+
+    <main class="container">
+
+        <!-- Leaderboard Ad -->
+        <div class="ad ad-leaderboard">
+            <span class="ad-label">Advertisement</span>
+            <div class="ad-placeholder">Ad Space 728x90</div>
+        </div>
+
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-main">
+                <a href="article.html?id=breaking" class="card card-main">
+                    <div class="news-img ratio-16x9">
+                        <img src="images/placeholder-hero.jpg" alt="Hero news image" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                    </div>
+                    <span class="category-tag">Breaking</span>
+                    <h2 class="headline-main">Senate passes landmark electoral reform bill after hours of debate</h2>
+                    <p class="desc">The bill, if signed into law, will introduce electronic voting and significant changes to the electoral process across Nigeria. Stakeholders have praised the move.</p>
+                    <div class="card-info">
+                        <span class="info-category">Breaking News</span>
+                        <span class="info-author">By Adebayo Ogunleye</span>
+                        <span class="info-time">2 hours ago</span>
+                        <span class="info-read">4 min read</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="hero-main-wrapper">
+                <a href="article.html?id=political" class="card card-main">
+                    <div class="news-img ratio-16x9">
+                        <img src="images/placeholder-hero2.jpg" alt="News image" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                    </div>
+                    <span class="category-tag">Politics</span>
+                    <h2 class="headline-main">Governors meet with President over state police creation proposal</h2>
+                    <p class="desc">State governors are pushing for the creation of state police forces to address rising insecurity.</p>
+                    <div class="card-info">
+                        <span class="info-category">Politics</span>
+                        <span class="info-author">By Chiamaka Eze</span>
+                        <span class="info-time">4 hours ago</span>
+                        <span class="info-read">3 min read</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Hero secondary row -->
+        <div class="hero-grid">
+            <div class="hero-left">
+                <a href="article.html?id=latest1" class="card card-horizontal">
+                    <div class="news-img thumb">
+                        <img src="images/placeholder1.jpg" alt="News thumbnail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="img-fallback" style="display:none">M</div>
+                    </div>
+                    <h3 class="headline-sm">Lagos State announces new traffic management reforms after gridlock outcry</h3>
+                    <div class="card-info">
+                        <span class="info-time">30 mins ago</span>
+                    </div>
+                </a>
+                <a href="article.html?id=latest2" class="card card-horizontal">
+                    <div class="news-img thumb">
+                        <img src="images/placeholder2.jpg" alt="News thumbnail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="img-fallback" style="display:none">M</div>
+                    </div>
+                    <h3 class="headline-sm">NNPCL announces fuel price adjustment effective from tomorrow</h3>
+                    <div class="card-info">
+                        <span class="info-time">1 hour ago</span>
+                    </div>
+                </a>
+                <a href="article.html?id=latest3" class="card card-horizontal">
+                    <div class="news-img thumb">
+                        <img src="images/placeholder3.jpg" alt="News thumbnail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="img-fallback" style="display:none">M</div>
+                    </div>
+                    <h3 class="headline-sm">BBNaija star releases new single, trends across social media</h3>
+                    <div class="card-info">
+                        <span class="info-time">2 hours ago</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="hero-right">
+                <a href="article.html?id=trending1" class="card card-horizontal">
+                    <div class="news-img thumb">
+                        <img src="images/placeholder4.jpg" alt="News thumbnail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="img-fallback" style="display:none">M</div>
+                    </div>
+                    <h3 class="headline-sm">How Nigerian startups raised over $500m in Q1 - report</h3>
+                    <div class="card-info">
+                        <span class="info-time">3 hours ago</span>
+                    </div>
+                </a>
+                <a href="article.html?id=trending2" class="card card-horizontal">
+                    <div class="news-img thumb">
+                        <img src="images/placeholder5.jpg" alt="News thumbnail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="img-fallback" style="display:none">M</div>
+                    </div>
+                    <h3 class="headline-sm">Kano emirate crisis resurfaces as court vacates suspension order</h3>
+                    <div class="card-info">
+                        <span class="info-time">5 hours ago</span>
+                    </div>
+                </a>
+                <a href="article.html?id=trending3" class="card card-horizontal">
+                    <div class="news-img thumb">
+                        <img src="images/placeholder6.jpg" alt="News thumbnail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="img-fallback" style="display:none">M</div>
+                    </div>
+                    <h3 class="headline-sm">Flood alert: NIMET issues warning for 12 northern states</h3>
+                    <div class="card-info">
+                        <span class="info-time">6 hours ago</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Section headline -->
+        <div class="section-headline">
+            <h2 class="section-title">Latest News</h2>
+            <a href="pages/news.html" class="section-link">View All &rarr;</a>
+        </div>
+
+        <!-- Featured card collection -->
+        <section class="featured-collection">
+            <a href="article.html?id=featured1" class="card featured-card">
+                <div class="news-img ratio-16x9">
+                    <img src="images/placeholder7.jpg" alt="Featured" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                </div>
+                <span class="category-tag">Economy</span>
+                <h3 class="headline">CBN governor addresses inflation concerns at investor forum</h3>
+                <div class="card-info">
+                    <span class="info-time">1 hour ago</span>
+                </div>
+            </a>
+            <a href="article.html?id=featured2" class="card featured-card">
+                <div class="news-img ratio-16x9">
+                    <img src="images/placeholder8.jpg" alt="Featured" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                </div>
+                <span class="category-tag">Entertainment</span>
+                <h3 class="headline">Nollywood film 'Lagos Dreams' breaks box office records</h3>
+                <div class="card-info">
+                    <span class="info-time">2 hours ago</span>
+                </div>
+            </a>
+            <a href="article.html?id=featured3" class="card featured-card">
+                <div class="news-img ratio-16x9">
+                    <img src="images/placeholder9.jpg" alt="Featured" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                </div>
+                <span class="category-tag">Sports</span>
+                <h3 class="headline">Transfer deadline: Nigerian stars make big moves to European clubs</h3>
+                <div class="card-info">
+                    <span class="info-time">3 hours ago</span>
+                </div>
+            </a>
+            <a href="article.html?id=featured4" class="card featured-card">
+                <div class="news-img ratio-16x9">
+                    <img src="images/placeholder10.jpg" alt="Featured" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                </div>
+                <span class="category-tag">Health</span>
+                <h3 class="headline">Government rolls out nationwide malaria vaccination campaign</h3>
+                <div class="card-info">
+                    <span class="info-time">4 hours ago</span>
+                </div>
+            </a>
+        </section>
+
+        <!-- Two column layout -->
+        <div class="two-column">
+            <!-- Main content column -->
+            <div class="main-column">
+
+                <!-- Politics section -->
+                <div class="section-headline">
+                    <h2 class="section-title">Politics</h2>
+                    <a href="pages/politics.html" class="section-link">View All &rarr;</a>
+                </div>
+                <div class="article-column">
+                    <a href="article.html?id=pol1" class="card article-card">
+                        <div class="news-img ratio-16x9">
+                            <img src="images/placeholder11.jpg" alt="Politics" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                        </div>
+                        <h3 class="headline">INEC releases timetable for 2027 general elections</h3>
+                        <div class="card-info">
+                            <span class="info-category">Politics</span>
+                            <span class="info-author">By Tunde Balogun</span>
+                            <span class="info-time">1 hour ago</span>
+                        </div>
+                    </a>
+                    <a href="article.html?id=pol2" class="card article-card">
+                        <div class="news-img ratio-16x9">
+                            <img src="images/placeholder12.jpg" alt="Politics" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                        </div>
+                        <h3 class="headline">NASS passes new civil service reform bill, millions to benefit</h3>
+                        <div class="card-info">
+                            <span class="info-category">Politics</span>
+                            <span class="info-author">By Ngozi Adesanya</span>
+                            <span class="info-time">3 hours ago</span>
+                        </div>
+                    </a>
+                    <a href="article.html?id=pol3" class="card article-card">
+                        <div class="news-img ratio-16x9">
+                            <img src="images/placeholder13.jpg" alt="Politics" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                        </div>
+                        <h3 class="headline">APC, PDP trade words over 2027 campaign funding reports</h3>
+                        <div class="card-info">
+                            <span class="info-category">Politics</span>
+                            <span class="info-author">By Emeka Nwachukwu</span>
+                            <span class="info-time">5 hours ago</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="ad ad-rectangle">
+                    <span class="ad-label">Advertisement</span>
+                    <div class="ad-placeholder">Ad Space 300x250</div>
+                </div>
+
+                <!-- Entertainment section -->
+                <div class="section-headline">
+                    <h2 class="section-title">Entertainment</h2>
+                    <a href="pages/entertainment.html" class="section-link">View All &rarr;</a>
+                </div>
+                <div class="article-column">
+                    <a href="article.html?id=ent1" class="card article-card">
+                        <div class="news-img ratio-16x9">
+                            <img src="images/placeholder14.jpg" alt="Entertainment" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                        </div>
+                        <h3 class="headline">Afrobeats continues global takeover as artists sell out European arenas</h3>
+                        <div class="card-info">
+                            <span class="info-category">Entertainment</span>
+                            <span class="info-author">By Kemi Adewale</span>
+                            <span class="info-time">2 hours ago</span>
+                        </div>
+                    </a>
+                    <a href="article.html?id=ent2" class="card article-card">
+                        <div class="news-img ratio-16x9">
+                            <img src="images/placeholder15.jpg" alt="Entertainment" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                        </div>
+                        <h3 class="headline">AMVCA 2026: Full list of nominees announced</h3>
+                        <div class="card-info">
+                            <span class="info-category">Entertainment</span>
+                            <span class="info-author">By Uche Obi</span>
+                            <span class="info-time">4 hours ago</span>
+                        </div>
+                    </a>
+                    <a href="article.html?id=ent3" class="card article-card">
+                        <div class="news-img ratio-16x9">
+                            <img src="images/placeholder16.jpg" alt="Entertainment" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                        </div>
+                        <h3 class="headline">Comedian AY announces national comedy tour dates for 2026</h3>
+                        <div class="card-info">
+                            <span class="info-category">Entertainment</span>
+                            <span class="info-author">By Funke Alabi</span>
+                            <span class="info-time">6 hours ago</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="ad ad-rectangle">
+                    <span class="ad-label">Advertisement</span>
+                    <div class="ad-placeholder">Ad Space 300x250</div>
+                </div>
+
+                <!-- Sports section -->
+                <div class="section-headline">
+                    <h2 class="section-title">Sports</h2>
+                    <a href="pages/sports.html" class="section-link">View All &rarr;</a>
+                </div>
+                <div class="article-column">
+                    <a href="article.html?id=spo1" class="card article-card">
+                        <div class="news-img ratio-16x9">
+                            <img src="images/placeholder17.jpg" alt="Sports" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                        </div>
+                        <h3 class="headline">Super Eagles announce squad for upcoming international friendlies</h3>
+                        <div class="card-info">
+                            <span class="info-category">Sports</span>
+                            <span class="info-author">By Saka Yusuf</span>
+                            <span class="info-time">1 hour ago</span>
+                        </div>
+                    </a>
+                    <a href="article.html?id=spo2" class="card article-card">
+                        <div class="news-img ratio-16x9">
+                            <img src="images/placeholder18.jpg" alt="Sports" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                        </div>
+                        <h3 class="headline">NPFL title race heats up as league enters final stretch</h3>
+                        <div class="card-info">
+                            <span class="info-category">Sports</span>
+                            <span class="info-author">By Ibrahim Musa</span>
+                            <span class="info-time">3 hours ago</span>
+                        </div>
+                    </a>
+                    <a href="article.html?id=spo3" class="card article-card">
+                        <div class="news-img ratio-16x9">
+                            <img src="images/placeholder19.jpg" alt="Sports" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                        </div>
+                        <h3 class="headline">Nigerian athlete breaks national record at Diamond League</h3>
+                        <div class="card-info">
+                            <span class="info-category">Sports</span>
+                            <span class="info-author">By Bisi Adeola</span>
+                            <span class="info-time">5 hours ago</span>
+                        </div>
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="sidebar">
+
+                <div class="ad ad-rectangle sidebar-ad">
+                    <span class="ad-label">Advertisement</span>
+                    <div class="ad-placeholder">Ad Space 300x250</div>
+                </div>
+
+                <div class="section-headline sidebar-headline">
+                    <h2 class="section-title">Trending Now</h2>
+                </div>
+                <div class="trending-list">
+                    <a href="article.html?id=trend1" class="card trending-item">
+                        <span class="trending-number">1</span>
+                        <h3 class="headline-sm">Petrol price drops as new refinery ramps up production</h3>
+                    </a>
+                    <a href="article.html?id=trend2" class="card trending-item">
+                        <span class="trending-number">2</span>
+                        <h3 class="headline-sm">Nigeria's GDP grows 3.4% in latest quarter - NBS</h3>
+                    </a>
+                    <a href="article.html?id=trend3" class="card trending-item">
+                        <span class="trending-number">3</span>
+                        <h3 class="headline-sm">Burna Boy announces stadium world tour dates</h3>
+                    </a>
+                    <a href="article.html?id=trend4" class="card trending-item">
+                        <span class="trending-number">4</span>
+                        <h3 class="headline-sm">Electricity tariff: FG explains new band structure</h3>
+                    </a>
+                    <a href="article.html?id=trend5" class="card trending-item">
+                        <span class="trending-number">5</span>
+                        <h3 class="headline-sm">Cybercrime: EFCC arrests 47 suspects in Lagos raid</h3>
+                    </a>
+                </div>
+
+                <div class="ad ad-rectangle sidebar-ad">
+                    <span class="ad-label">Advertisement</span>
+                    <div class="ad-placeholder">Ad Space 300x250</div>
+                </div>
+
+                <div class="section-headline sidebar-headline">
+                    <h2 class="section-title">Most Read</h2>
+                </div>
+                <div class="most-read-list">
+                    <a href="article.html?id=read1" class="card card-horizontal">
+                        <div class="news-img thumb">
+                            <img src="images/placeholder20.jpg" alt="Most read" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">M</div>
+                        </div>
+                        <h3 class="headline-sm">10 major changes Nigerians should expect from 2026 budget</h3>
+                    </a>
+                    <a href="article.html?id=read2" class="card card-horizontal">
+                        <div class="news-img thumb">
+                            <img src="images/placeholder21.jpg" alt="Most read" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">M</div>
+                        </div>
+                        <h3 class="headline-sm">How to apply for FG's new student loan scheme</h3>
+                    </a>
+                    <a href="article.html?id=read3" class="card card-horizontal">
+                        <div class="news-img thumb">
+                            <img src="images/placeholder22.jpg" alt="Most read" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="img-fallback" style="display:none">M</div>
+                        </div>
+                        <h3 class="headline-sm">Top 10 Nigerian songs dominating charts this week</h3>
+                    </a>
+                </div>
+
+                <div class="ad ad-rectangle sidebar-ad">
+                    <span class="ad-label">Advertisement</span>
+                    <div class="ad-placeholder">Ad Space 300x250</div>
+                </div>
+
+                <div class="newsletter-box">
+                    <h3>Get the latest news in your inbox</h3>
+                    <p>Subscribe to Mindnewsng for daily updates straight to your email.</p>
+                    <form id="newsletterForm" class="newsletter-form">
+                        <input type="email" id="newsletterEmail" placeholder="Enter your email address" required>
+                        <button type="submit" class="btn">Subscribe</button>
+                    </form>
+                    <p class="form-msg" id="newsletterMsg"></p>
+                </div>
+
+            </aside>
+        </div>
+
+        <!-- Business section -->
+        <div class="section-headline">
+            <h2 class="section-title">Business</h2>
+            <a href="pages/business.html" class="section-link">View All &rarr;</a>
+        </div>
+        <section class="featured-collection">
+            <a href="article.html?id=biz1" class="card featured-card">
+                <div class="news-img ratio-16x9">
+                    <img src="images/placeholder23.jpg" alt="Business" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                </div>
+                <span class="category-tag">Business</span>
+                <h3 class="headline">NGX All-Share Index crosses 150,000 mark for first time</h3>
+                <div class="card-info">
+                    <span class="info-time">1 hour ago</span>
+                </div>
+            </a>
+            <a href="article.html?id=biz2" class="card featured-card">
+                <div class="news-img ratio-16x9">
+                    <img src="images/placeholder24.jpg" alt="Business" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                </div>
+                <span class="category-tag">Business</span>
+                <h3 class="headline">Dangote refinery exports first consignment of jet fuel</h3>
+                <div class="card-info">
+                    <span class="info-time">3 hours ago</span>
+                </div>
+            </a>
+            <a href="article.html?id=biz3" class="card featured-card">
+                <div class="news-img ratio-16x9">
+                    <img src="images/placeholder25.jpg" alt="Business" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                </div>
+                <span class="category-tag">Technology</span>
+                <h3 class="headline">Flutterwave secures $100m VC funding round</h3>
+                <div class="card-info">
+                    <span class="info-time">5 hours ago</span>
+                </div>
+            </a>
+            <a href="article.html?id=biz4" class="card featured-card">
+                <div class="news-img ratio-16x9">
+                    <img src="images/placeholder26.jpg" alt="Business" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+                </div>
+                <span class="category-tag">Business</span>
+                <h3 class="headline">FG unveils plan to boost non-oil exports by 40%</h3>
+                <div class="card-info">
+                    <span class="info-time">7 hours ago</span>
+                </div>
+            </a>
+        </section>
+
+        <!-- Load More button -->
+        <div class="load-more-wrap">
+            <button class="btn load-more" id="loadMoreBtn">Load More News</button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-top">
+            <div class="container footer-inner">
+                <div class="footer-col footer-about">
+                    <a href="index.html" class="footer-logo">Mind<span>news</span>ng</a>
+                    <p>Mindnewsng is Nigeria's trusted source for breaking news, politics, entertainment, sports, business and more. Stay informed, stay ahead.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Categories</h4>
+                    <ul>
+                        <li><a href="pages/news.html">News</a></li>
+                        <li><a href="pages/politics.html">Politics</a></li>
+                        <li><a href="pages/entertainment.html">Entertainment</a></li>
+                        <li><a href="pages/sports.html">Sports</a></li>
+                        <li><a href="pages/business.html">Business</a></li>
+                        <li><a href="pages/lifestyle.html">Lifestyle</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact Us</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms of Service</a></li>
+                        <li><a href="advertise.html">Advertise With Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col footer-social">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">FB</a>
+                        <a href="#" aria-label="Twitter / X">X</a>
+                        <a href="#" aria-label="Instagram">IG</a>
+                        <a href="#" aria-label="YouTube">YT</a>
+                    </div>
+                    <h4>Contact</h4>
+                    <p class="footer-contact">
+                        <a href="mailto:info@mindnewsng.com">info@mindnewsng.com</a><br>
+                        <a href="tel:+2348000000000">+234 800 000 0000</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2026 Mindnewsng. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal for live news -->
+    <div class="modal" id="newsModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
