@@ -1,12 +1,10 @@
 name: News Automation
 
-# Regular news refresh every 3 hours, plus a fast poll every 15 minutes
-# so breaking stories surface on the site quickly after sources publish them.
 on:
   schedule:
-    - cron: '*/15 * * * *'   # every 15 minutes  -> catches breaking news fast
-    - cron: '0 */3 * * *'    # every 3 hours     -> full refresh cycle
-  workflow_dispatch:         # lets you trigger manually from GitHub "Actions" tab
+    - cron: '*/15 * * * *'
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -37,6 +35,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
           publish_branch: gh-pages
-          user_name: 'github-actions[bot]'
-          user_email: '41898282+github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Auto-update news feed (${{ github.event.schedule || 'manual' }})'
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
