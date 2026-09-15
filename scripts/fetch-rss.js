@@ -6,12 +6,16 @@ const OUTPUT = path.join(DATA_DIR, 'articles.json');
 const SEED_FILE = path.join(DATA_DIR, 'seed.json');
 
 const RSS_FEEDS = [
+  // Nigerian sources
   { source: 'BBC Africa',     category: 'World News',  url: 'http://feeds.bbci.co.uk/news/world/africa/rss.xml' },
   { source: 'Channels TV',    category: 'News',        url: 'https://www.channelstv.com/feed/' },
   { source: 'Premium Times',  category: 'News',        url: 'https://www.premiumtimesng.com/feed/' },
   { source: 'Vanguard',       category: 'News',        url: 'https://www.vanguardngr.com/feed/' },
   { source: 'The Guardian',   category: 'News',        url: 'https://guardian.ng/feed/' },
   { source: 'Punch',          category: 'News',        url: 'https://punchng.com/feed/' },
+  // International sources relevant to Nigerians
+  { source: 'France24 Africa', category: 'World News',  url: 'https://www.france24.com/en/africa/rss' },
+  { source: 'Al Jazeera',     category: 'World News',  url: 'https://www.aljazeera.com/xml/rss/all.xml' },
 ];
 
 const CATEGORY_KEYWORDS = {
@@ -19,11 +23,11 @@ const CATEGORY_KEYWORDS = {
   Entertainment:  /movie|nollywood|music|film|actor|actress|singer|entertai|concert|blogger|afrobeats|grammy|amvca|bbnaija/i,
   Sports:         /football|soccer|nff|super.*eagles|npfl|league|transfer|goal|coach|match|champion|olympi|athlet|basketball/i,
   Money:          /econom|cbn|banking|stock|trade|invest|gdp|inflat|naira|dollar|dangot|ftse|ngx|nse|oil.*price|exchange.*rate|forex|cost.*of|price|salary|loan|wage|budget/i,
-  'Jobs & Education': /scholarship|job|vacanc|universit|school.*fee|admission|visa|train|certif|examin|recruit|employ|degree|course|student|employment/i,
+  'Jobs & Education': /scholarship|job|vacanc|universit|school.*fee|admission|visa|train|certif|examin|recruit|employ|degree|course|student|employment|japa|relocat|immigra|emigrat|work.*abroad|freelanc|remote.*work/i,
   Health:         /health|hospit|doctor|vaccin|disease|malaria|covid|treatment|pharm|minist.*health|who\b/i,
   Lifestyle:      /fashion|food|travel|relationship|wedding|marriage|style|beauty|home/i,
   Technology:     /artifici.*intellig|blockchain|cryptocurr|bitcoin|fintech|start.?up|software|cyber|data.*breach|gadget|smartphone|iphone|tech/i,
-  'World News':   /africa|us |america|uk |britain|cansada|europe|china|russia|united.*states|united.*kingdom|international|global/i,
+  'World News':   /africa|us |america|uk |britain|canada|europe|china|russia|united.*states|united.*kingdom|international|global|xenophob|deporta|protest.*nigeri|attack.*nigeri|foreign/i,
 };
 
 function categorize(text) {
