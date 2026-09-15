@@ -66,9 +66,12 @@
       return;
     }
 
-    searchResults.innerHTML = matches.map(a =>
-      '<a href="articles/' + a.slug + '.html">' + highlightText(a.title, q) + '</a>'
-    ).join('');
+    searchResults.innerHTML = matches.map(a => {
+      const p = window.location.pathname;
+      const deep = /\/pages\/|\/articles\/|\/authors\//.test(p) && !p.endsWith('/');
+      const prefix = deep ? '../' : '';
+      return '<a href="' + prefix + 'articles/' + a.slug + '.html">' + highlightText(a.title, q) + '</a>';
+    }).join('');
   }
 
   function highlightText(text, query) {

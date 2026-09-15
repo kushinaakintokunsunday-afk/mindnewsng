@@ -14,6 +14,7 @@ const SITE = {
   email: 'info@mindnewsng.com',
   phone: '+234 800 000 0000',
   baseUrl: '/',
+  url: 'https://kushinaakintokunsunday-afk.github.io/mindnewsng',
 };
 
 const CATEGORIES = ['News', 'Politics', 'Entertainment', 'Sports', 'Money', 'Jobs & Education', 'Technology', 'Lifestyle', 'World News', 'Guides'];
@@ -137,6 +138,110 @@ function placeholderImg(id, w = 600, h = 338) {
   return `https://placehold.co/${w}x${h}/02b290/ffffff?text=Mindnewsng`;
 }
 
+// ─── SEO Helpers ──────────────────────────────────────────────────
+
+function absUrl(path) {
+  return `${SITE.url}${path}`;
+}
+
+function seoTags({ title, description, path, image, type = 'website' }) {
+  const url = absUrl(path);
+  const img = image || placeholderImg('mindnewsng-share', 1200, 630);
+  return `
+    <meta name="description" content="${esc(description)}">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="canonical" href="${url}">
+    <meta property="og:type" content="${type}">
+    <meta property="og:site_name" content="${esc(SITE.name)}">
+    <meta property="og:title" content="${esc(title)}">
+    <meta property="og:description" content="${esc(description)}">
+    <meta property="og:url" content="${url}">
+    <meta property="og:image" content="${img}">
+    <meta property="og:locale" content="en_NG">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${esc(title)}">
+    <meta name="twitter:description" content="${esc(description)}">
+    <meta name="twitter:image" content="${img}">`;
+}
+
+function orgSchema() {
+  return `<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsMediaOrganization",
+  "@id": "${SITE.url}/#org",
+  "name": "${esc(SITE.name)}",
+  "url": "${SITE.url}",
+  "description": "${esc(SITE.description)}",
+  "email": "${SITE.email}",
+  "contactPoint": { "@type": "ContactPoint", "telephone": "${SITE.phone}", "contactType": "customer service" }
+}</script>`;
+}
+
+function newsArticleSchema(article, cat) {
+  const img = article.image || placeholderImg(article.slug, 1200, 630);
+  const pubDate = new Date(article.date).toISOString();
+  const authorUrl = absUrl(`/authors/${slugify(article.author)}.html`);
+  const pageUrl = absUrl(`/articles/${article.slug}.html`);
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: article.title,
+    description: article.description,
+    image: [img],
+    datePublished: pubDate,
+    dateModified: pubDate,
+    articleSection: cat,
+    inLanguage: 'en',
+    mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+    author: { '@type': 'Person', name: article.author, url: authorUrl },
+    publisher: { '@id': `${SITE.url}/#org` },
+    sourceOrganization: { '@type': 'Organization', name: article.source },
+  };
+  return `<script type="application/ld+json">${JSON.stringify(data)}</script>`;
+}
+
+function breadcrumbSchema(items) {
+  const list = items.map((it, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: it.label,
+    item: it.href ? absUrl(it.href) : undefined,
+  })).filter(i => i.item);
+  return `<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": ${JSON.stringify(list)}
+}</script>`;
+}
+
+function authorSchema(author, articles) {
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: author,
+    url: absUrl(`/authors/${slugify(author)}.html`),
+    jobTitle: 'Journalist',
+    worksFor: { '@id': `${SITE.url}/#org` },
+    description: `Author of ${articles.length} article(s) published on Mindnewsng.`,
+  };
+  return `<script type="application/ld+json">${JSON.stringify(data)}</script>`;
+}
+
+function sortNewest(articles) {
+  return [...articles].sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+function authorsNames(articles) {
+  const merged = {};
+  for (const a of articles) {
+    const name = a.author || 'Mindnewsng Staff';
+    merged[name] = true;
+  }
+  return Object.keys(merged);
+}
+
 // ─── HTML Templates ───────────────────────────────────────────────
 
 function header(activePage = 'Home') {
@@ -202,20 +307,22 @@ function footer() {
     <footer class="site-footer">
         <div class="footer-top"><div class="container footer-inner">
             <div class="footer-col footer-about">
-                <a href="../index.html" class="footer-logo">Mind<span>news</span>ng</a>
+                <a href="${absUrl('/')}" class="footer-logo">Mind<span>news</span>ng</a>
                 <p>Mindnewsng is Nigeria's trusted source for breaking news, politics, entertainment, sports, business and more.</p>
             </div>
             <div class="footer-col">
                 <h4>Categories</h4>
-                <ul>${CATEGORIES.map(c => `<li><a href="../pages/${slugify(c)}.html">${c}</a></li>`).join('\n')}</ul>
+                <ul>${CATEGORIES.map(c => `<li><a href="${absUrl(`/pages/${slugify(c)}.html`)}">${c}</a></li>`).join('\n')}</ul>
             </div>
             <div class="footer-col">
                 <h4>Company</h4>
                 <ul>
-                    <li><a href="../about.html">About Us</a></li>
-                    <li><a href="../contact.html">Contact Us</a></li>
-                    <li><a href="../privacy.html">Privacy Policy</a></li>
-                    <li><a href="../terms.html">Terms of Service</a></li>
+                    <li><a href="${absUrl('/about.html')}">About Us</a></li>
+                    <li><a href="${absUrl('/contact.html')}">Contact Us</a></li>
+                    <li><a href="${absUrl('/editorial-policy.html')}">Editorial Policy</a></li>
+                    <li><a href="${absUrl('/authors/mindnewsng-staff.html')}">Our Journalists</a></li>
+                    <li><a href="${absUrl('/privacy.html')}">Privacy Policy</a></li>
+                    <li><a href="${absUrl('/terms.html')}">Terms of Service</a></li>
                 </ul>
             </div>
             <div class="footer-col footer-social">
@@ -318,9 +425,10 @@ function buildSeoPages(articles) {
 
   // Sitemap
   const urls = [
-    '/', '/about.html', '/contact.html', '/privacy.html', '/terms.html',
+    '/', '/about.html', '/contact.html', '/privacy.html', '/terms.html', '/editorial-policy.html',
     ...CATEGORIES.map(c => `/pages/${slugify(c)}.html`),
     ...articles.map(a => `/articles/${a.slug}.html`),
+    ...authorsNames(articles).map(name => `/authors/${slugify(name)}.html`),
   ];
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -362,10 +470,11 @@ function buildIndex(articles) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${SITE.name} - ${SITE.tagline}</title>
-    <meta name="description" content="${esc(SITE.description)}">
+    ${seoTags({ title: `${SITE.name} - ${SITE.tagline}`, description: SITE.description, path: '/', type: 'website' })}
     <meta name="theme-color" content="#02b290">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+    ${orgSchema()}
 </head>
 <body>
     <header class="site-header">
@@ -599,6 +708,14 @@ function buildCategoryPage(category, articles) {
   const slug = slugify(category);
   const catArticles = articles.filter(a => articleCategory(a) === category);
   const allArticles = catArticles.length ? catArticles : articles;
+  const topTitles = catArticles.slice(0, 3).map(a => a.title);
+  const desc = catArticles.length
+    ? `Latest ${category.toLowerCase()} news in Nigeria: ${topTitles.join('. ')}. Get ${category.toLowerCase()} updates from Mindnewsng.`
+    : `${category} news from Mindnewsng.`;
+  const crumbs = [
+    { label: 'Home', href: '../index.html' },
+    { label: category },
+  ];
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -606,10 +723,17 @@ function buildCategoryPage(category, articles) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${category} - ${SITE.name}</title>
-    <meta name="description" content="${esc(category)} news from Mindnewsng">
+    ${seoTags({
+      title: `${category} News - ${SITE.name}`,
+      description: desc,
+      path: `/pages/${slug}.html`,
+      type: 'website',
+    })}
     <meta name="theme-color" content="#02b290">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
+    ${orgSchema()}
+    ${breadcrumbSchema(crumbs)}
 </head>
 <body>
     ${header(category)}
@@ -678,10 +802,19 @@ function buildArticlePage(article, allArticles) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${esc(article.title)} - ${SITE.name}</title>
-    <meta name="description" content="${esc(article.description)}">
+    ${seoTags({
+      title: `${article.title} - ${SITE.name}`,
+      description: article.description,
+      path: `/articles/${article.slug}.html`,
+      type: 'article',
+      image: article.image || undefined,
+    })}
     <meta name="theme-color" content="#02b290">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
+    ${orgSchema()}
+    ${breadcrumbSchema(breadcrumbs)}
+    ${newsArticleSchema(article, cat)}
 </head>
 <body>
     ${header(cat)}
@@ -698,7 +831,7 @@ function buildArticlePage(article, allArticles) {
                 <span class="category-tag" style="--cat-color:${getCatColor(cat)}">${esc(cat)}</span>
                 <h1>${esc(article.title)}</h1>
                 <div class="article-meta">
-                    <span class="meta-author">By ${esc(article.author)}</span>
+                    <span class="meta-author">By <a href="../authors/${slugify(article.author)}.html" class="author-link">${esc(article.author)}</a></span>
                     <span class="meta-source">${esc(article.source)}</span>
                     <span class="meta-date">${formatDate(article.date)}</span>
                     <span class="meta-read">${readingTime(article)} min read</span>
@@ -758,6 +891,101 @@ function buildArticlePage(article, allArticles) {
 
   fs.mkdirSync(path.join(OUT, 'articles'), { recursive: true });
   fs.writeFileSync(path.join(OUT, 'articles', `${article.slug}.html`), html);
+}
+
+function buildAuthorPages(articles) {
+  const byAuthor = {};
+  for (const a of articles) {
+    const name = a.author || 'Mindnewsng Staff';
+    (byAuthor[name] = byAuthor[name] || []).push(a);
+  }
+
+  const authorNames = Object.keys(byAuthor);
+  const FALLBACK = 'Mindnewsng Staff';
+  if (authorNames.includes(FALLBACK) && byAuthor[FALLBACK].length) {
+    // Merge all RSS-feed authors into the editorial staff page so no author is orphaned
+    const staff = byAuthor[FALLBACK] || [];
+    for (const [name, list] of Object.entries(byAuthor)) {
+      if (name !== FALLBACK && /BBC|Punch|Al Jazeera|Vanguard|Channels|Premium|France/i.test(name)) {
+        byAuthor[FALLBACK] = staff.concat(list);
+        delete byAuthor[name];
+      }
+    }
+  }
+
+  fs.mkdirSync(path.join(OUT, 'authors'), { recursive: true });
+  let authored = 0;
+  for (const [name, list] of Object.entries(byAuthor)) {
+    const slug = slugify(name);
+    const sorted = sortNewest(list);
+    const desc = `${name} is a journalist at Mindnewsng covering ${sorted[0] ? articleCategory(sorted[0]).toLowerCase() : 'news'} and more. Read ${name}'s latest articles.`;
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${esc(name)} - Author profile - ${SITE.name}</title>
+    ${seoTags({ title: `${name} - ${SITE.name}`, description: desc, path: `/authors/${slug}.html`, type: 'profile' })}
+    <meta name="theme-color" content="#02b290">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    ${orgSchema()}
+    ${authorSchema(name, list)}
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-top">
+            <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
+                <span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span>
+            </button>
+            <a href="../index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+            <button class="search-btn" id="searchBtn" aria-label="Search">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+        </div>
+        <nav class="main-nav" id="mainNav"><ul>${NAV_ITEMS.map(i => `<li><a href="${i.href}">${i.label}</a></li>`).join('\n')}</ul></nav>
+        <div class="search-overlay" id="searchOverlay">
+            <div class="search-overlay-inner">
+                <form id="searchForm" class="search-form">
+                    <input type="text" id="searchInput" placeholder="Search news..." autocomplete="off">
+                    <button type="submit" aria-label="Search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+                </form>
+                <div class="search-results" id="searchResults"></div>
+                <button class="search-close" id="searchClose" aria-label="Close">&times;</button>
+            </div>
+        </div>
+    </header>
+    <main class="container page-category">
+        <div class="page-hero author-hero">
+            <div class="author-avatar">${esc(name.split(' ').map(w => w[0]).slice(0, 2).join(''))}</div>
+            <div>
+                <h1>${esc(name)}</h1>
+                <p>Journalist at ${SITE.name} &middot; ${sorted.length} article${sorted.length === 1 ? '' : 's'}</p>
+            </div>
+        </div>
+        <div class="two-column">
+            <div class="main-column">
+                <div class="section-headline"><h2 class="section-title">Latest by ${esc(name)}</h2></div>
+                <div class="article-column">
+                    ${sorted.map(a => articleCard(a, 'full')).join('\n')}
+                </div>
+            </div>
+            <aside class="sidebar">
+                ${adBlock('300x250')}
+                <div class="section-headline sidebar-headline"><h2 class="section-title">Trending Now</h2></div>
+                <div class="trending-list">
+                    ${articles.slice(0, 5).map((a, i) => trendingItem(a, i)).join('\n')}
+                </div>
+            </aside>
+        </div>
+    </main>
+    ${footer()}
+    <script src="../js/main.js"></script>
+</body></html>`;
+    fs.writeFileSync(path.join(OUT, 'authors', `${slug}.html`), html);
+    authored++;
+  }
+  console.log(`  Built: ${authored} author pages`);
 }
 
 function buildStaticPages() {
@@ -860,11 +1088,47 @@ function buildStaticPages() {
     <script src="js/main.js"></script>
 </body></html>`;
 
+  const editorial = `<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editorial Policy - ${SITE.name}</title>
+    ${seoTags({ title: `Editorial Policy - ${SITE.name}`, description: 'How Mindnewsng gathers, verifies, corrects and publishes news. Our editorial standards, ethics and corrections process.', path: '/editorial-policy.html' })}
+    <meta name="theme-color" content="#02b290">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    ${orgSchema()}
+</head><body>
+    <header class="site-header"><div class="header-top">
+        <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
+        <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+        <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+    </div></header>
+    <main class="container page-static">
+        <h1>Editorial Policy</h1>
+        <p>Mindnewsng is committed to truthful, fair and independent journalism in service of the Nigerian public. Our editorial standards are simple and non-negotiable.</p>
+        <h2>Accuracy and Verification</h2>
+        <p>We strive to report accurately. Each story is checked before publication, and where information cannot be independently verified we say so and attribute the information to its source.</p>
+        <h2>Attribution</h2>
+        <p>We clearly credit our sources. Articles sourced from our partner news wires and national publications carry the name of the originating outlet. Our own reporting is attributed to our named journalists.</p>
+        <h2>Corrections</h2>
+        <p>When we get something wrong, we correct it promptly and transparently. Readers can request a correction by writing to <a href="mailto:${SITE.email}">${SITE.email}</a> with the subject line "Correction". We aim to respond within 24 hours.</p>
+        <h2>Independence</h2>
+        <p>Editorial decisions are made independently of advertisers, sponsors, government and political interests. Advertising is clearly labelled and never influences reporting.</p>
+        <h2>Ethics</h2>
+        <p>We do not accept bribes or payment for coverage. Our journalists identify themselves as reporters, protect vulnerable sources, and respect privacy except where the public interest clearly outweighs it.</p>
+        <h2>Community Standards</h2>
+        <p>We avoid publishing content that promotes hatred, discrimination or violence against any group, and we take care when reporting on sensitive topics such as violence, tragedy and vulnerable individuals.</p>
+    </main>
+    ${footer()}
+    <script src="js/main.js"></script>
+</body></html>`;
+
   fs.writeFileSync(path.join(OUT, 'about.html'), about);
   fs.writeFileSync(path.join(OUT, 'contact.html'), contact);
   fs.writeFileSync(path.join(OUT, 'privacy.html'), privacy);
   fs.writeFileSync(path.join(OUT, 'terms.html'), terms);
-  console.log('  Built: about.html, contact.html, privacy.html, terms.html');
+  fs.writeFileSync(path.join(OUT, 'editorial-policy.html'), editorial);
+  console.log('  Built: about.html, contact.html, privacy.html, terms.html, editorial-policy.html');
 }
 
 function copyAssets() {
@@ -917,6 +1181,9 @@ function main() {
 
   // Static pages
   buildStaticPages();
+
+  // Author pages
+  buildAuthorPages(articles);
 
   // SEO
   buildSeoPages(articles);
