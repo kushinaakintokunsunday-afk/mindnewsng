@@ -320,7 +320,7 @@ function footer() {
                     <li><a href="${absUrl('/about.html')}">About Us</a></li>
                     <li><a href="${absUrl('/contact.html')}">Contact Us</a></li>
                     <li><a href="${absUrl('/editorial-policy.html')}">Editorial Policy</a></li>
-                    <li><a href="${absUrl('/authors/mindnewsng-staff.html')}">Our Journalists</a></li>
+                    <li><a href="${absUrl('/authors/index.html')}">Our Journalists</a></li>
                     <li><a href="${absUrl('/privacy.html')}">Privacy Policy</a></li>
                     <li><a href="${absUrl('/terms.html')}">Terms of Service</a></li>
                 </ul>
@@ -425,7 +425,7 @@ function buildSeoPages(articles) {
 
   // Sitemap
   const urls = [
-    '/', '/about.html', '/contact.html', '/privacy.html', '/terms.html', '/editorial-policy.html',
+    '/', '/about.html', '/contact.html', '/privacy.html', '/terms.html', '/editorial-policy.html', '/authors/index.html',
     ...CATEGORIES.map(c => `/pages/${slugify(c)}.html`),
     ...articles.map(a => `/articles/${a.slug}.html`),
     ...authorsNames(articles).map(name => `/authors/${slugify(name)}.html`),
@@ -915,6 +915,62 @@ function buildAuthorPages(articles) {
 
   fs.mkdirSync(path.join(OUT, 'authors'), { recursive: true });
   let authored = 0;
+
+  // Journalist directory (all author pages in one place)
+  const dirPage = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Journalists - ${SITE.name}</title>
+    ${seoTags({ title: `Our Journalists - ${SITE.name}`, description: `Meet the journalists reporting for ${SITE.name}. Read articles by our named reporters and editorial team.`, path: '/authors/index.html' })}
+    <meta name="theme-color" content="#02b290">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    ${orgSchema()}
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-top">
+            <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
+                <span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span>
+            </button>
+            <a href="../index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+            <button class="search-btn" id="searchBtn" aria-label="Search">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+        </div>
+        <nav class="main-nav" id="mainNav"><ul>${NAV_ITEMS.map(i => `<li><a href="${i.href}">${i.label}</a></li>`).join('\n')}</ul></nav>
+        <div class="search-overlay" id="searchOverlay">
+            <div class="search-overlay-inner">
+                <form id="searchForm" class="search-form">
+                    <input type="text" id="searchInput" placeholder="Search news..." autocomplete="off">
+                    <button type="submit" aria-label="Search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+                </form>
+                <div class="search-results" id="searchResults"></div>
+                <button class="search-close" id="searchClose" aria-label="Close">&times;</button>
+            </div>
+        </div>
+    </header>
+    <main class="container page-category">
+        <div class="page-hero">
+            <h1>Our Journalists</h1>
+            <p>Meet the reporters and editorial team behind ${SITE.name}</p>
+        </div>
+        <div class="author-grid">
+            ${Object.keys(byAuthor).sort().map(name => `
+            <a href="${slugify(name)}.html" class="author-card">
+                <div class="author-avatar">${esc(name.split(' ').map(w => w[0]).slice(0, 2).join(''))}</div>
+                <h3>${esc(name)}</h3>
+                <p>${byAuthor[name].length} article${byAuthor[name].length === 1 ? '' : 's'}</p>
+            </a>`).join('\n')}
+        </div>
+    </main>
+    ${footer()}
+    <script src="../js/main.js"></script>
+</body></html>`;
+  fs.writeFileSync(path.join(OUT, 'authors', 'index.html'), dirPage);
+
   for (const [name, list] of Object.entries(byAuthor)) {
     const slug = slugify(name);
     const sorted = sortNewest(list);
