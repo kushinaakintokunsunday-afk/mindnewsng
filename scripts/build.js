@@ -138,6 +138,54 @@ function placeholderImg(id, w = 600, h = 338) {
   return `https://placehold.co/${w}x${h}/02b290/ffffff?text=Mindnewsng`;
 }
 
+// Category-branded placeholder for feeds that publish no article images.
+function articlePlaceholder(article, w = 600, h = 338) {
+  const cat = articleCategory(article);
+  const hex = (getCatColor(cat) || '#111111').replace('#', '');
+  return `https://placehold.co/${w}x${h}/${hex}/ffffff?text=${encodeURIComponent(`Mindnewsng ${cat}`)}`;
+}
+
+// Sanitize RSS/feed HTML body before inlining it into article pages.
+// Keeps safe inline content, strips scripts/iframes/promotional widgets.
+function sanitizeHtml(html) {
+  if (!html) return '';
+  return String(html)
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+    .replace(/<form[\s\S]*?<\/form>/gi, '')
+    .replace(/<[^>]*on\w+="[^"]*"[^>]*>/gi, '')   // strip inline event handlers
+    .replace(/javascript:/gi, '')
+    .trim();
+}
+
+// Render the full article body from the feed's HTML content.
+// Falls back to a short "read more" call-to-action if no body was captured.
+function articleBody(article) {
+  const raw = article.content || article.body || '';
+  const html = sanitizeHtml(raw);
+  const hasRealBody = html.replace(/<[^>]+>/g, '').trim().length > 60;
+  if (!hasRealBody) {
+    const sourceUrl = article.url && article.url !== '#' ? article.url : null;
+    return `<p><em>This summary was compiled from <strong>${esc(article.source || 'the original source')}</strong>. ${sourceUrl ? `Read the full story <a href="${esc(sourceUrl)}" target="_blank" rel="noopener nofollow">here</a> for complete coverage.` : ''}</em></p>`;
+  }
+  // Strip leading <p>&nbsp;</p> noise and a first paragraph that duplicates the lead
+  let body = html
+    .replace(/^\s*<p>&nbsp;<\/p>/i, '')
+    .replace(/^\s*<p>\s*<\/p>/i, '');
+  if (article.description) {
+    const leadStart = article.description.slice(0, 80).toLowerCase();
+    body = body.replace(new RegExp(`<p[^>]*>${escRegex(leadStart)[0]}[\\s\\S]{0,400}?<\\/p>`, 'i'), '')
+      .replace(/^\s*<p>&nbsp;<\/p>/i, '')
+      .replace(/^\s*<p>\s*<\/p>/i, '');
+  }
+  return body;
+}
+
+function escRegex(str) {
+  return [String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')];
+}
+
 // ─── SEO Helpers ──────────────────────────────────────────────────
 
 function absUrl(path) {
@@ -179,7 +227,7 @@ function orgSchema() {
 }
 
 function newsArticleSchema(article, cat) {
-  const img = article.image || placeholderImg(article.slug, 1200, 630);
+  const img = article.image || articlePlaceholder(article, 1200, 630);
   const pubDate = new Date(article.date).toISOString();
   const authorUrl = absUrl(`/authors/${slugify(article.author)}.html`);
   const pageUrl = absUrl(`/articles/${article.slug}.html`);
@@ -352,7 +400,7 @@ function adBlock(size = '728x90') {
 
 function articleCard(article, size = 'full') {
   const cat = articleCategory(article);
-  const img = article.image || placeholderImg(article.id);
+  const img = article.image || articlePlaceholder(article);
   const href = `../articles/${article.slug}.html`;
   const read = readingTime(article);
   return `
@@ -384,7 +432,7 @@ function trendingItem(article, index) {
 
 function featuredCard(article, imgW = 300, imgH = 169) {
   const cat = articleCategory(article);
-  const img = article.image || placeholderImg(article.slug || article.id, imgW, imgH);
+  const img = article.image || articlePlaceholder(article, imgW, imgH);
   return `
     <a href="articles/${article.slug}.html" class="card featured-card">
         <div class="news-img ratio-16x9">
@@ -532,7 +580,7 @@ function buildIndex(articles) {
             <div class="hero-main">
                 <a href="articles/${hero1.slug}.html" class="card card-main">
                     <div class="news-img ratio-16x9">
-                        <img src="${esc(hero1.image || placeholderImg(hero1.slug))}" alt="${esc(hero1.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(hero1.image || articlePlaceholder(hero1))}" alt="${esc(hero1.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                     </div>
                     <span class="category-tag">${esc(articleCategory(hero1))}</span>
@@ -549,7 +597,7 @@ function buildIndex(articles) {
             <div class="hero-main-wrapper">
                 <a href="articles/${hero2.slug}.html" class="card card-main">
                     <div class="news-img ratio-16x9">
-                        <img src="${esc(hero2.image || placeholderImg(hero2.slug, 400, 225))}" alt="${esc(hero2.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(hero2.image || articlePlaceholder(hero2, 400, 225))}" alt="${esc(hero2.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                     </div>
                     <span class="category-tag">${esc(articleCategory(hero2))}</span>
@@ -569,7 +617,7 @@ function buildIndex(articles) {
                 ${latest.slice(0, 3).map(a => `
                 <a href="articles/${a.slug}.html" class="card card-horizontal">
                     <div class="news-img thumb">
-                        <img src="${esc(a.image || placeholderImg(a.slug, 120, 80))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(a.image || articlePlaceholder(a, 120, 80))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">M</div>
                     </div>
                     <h3 class="headline-sm">${esc(a.title)}</h3>
@@ -580,7 +628,7 @@ function buildIndex(articles) {
                 ${latest.slice(3, 6).map(a => `
                 <a href="articles/${a.slug}.html" class="card card-horizontal">
                     <div class="news-img thumb">
-                        <img src="${esc(a.image || placeholderImg(a.slug, 120, 80))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(a.image || articlePlaceholder(a, 120, 80))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">M</div>
                     </div>
                     <h3 class="headline-sm">${esc(a.title)}</h3>
@@ -609,7 +657,7 @@ function buildIndex(articles) {
               <a href="articles/${a.slug}.html" class="card shared-card">
                   <span class="shared-rank">${i + 1}</span>
                   <div class="news-img ratio-16x9">
-                      <img src="${esc(a.image || placeholderImg(a.slug, 200, 120))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                      <img src="${esc(a.image || articlePlaceholder(a, 200, 120))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                       <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                   </div>
                   <h3 class="headline-sm">${esc(a.title)}</h3>
@@ -839,22 +887,13 @@ function buildArticlePage(article, allArticles) {
             </header>
 
             <div class="article-featured-img">
-                <img src="${esc(article.image || placeholderImg(article.id, 800, 450))}" alt="${esc(article.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <img src="${esc(article.image || articlePlaceholder(article, 800, 450))}" alt="${esc(article.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                 <div class="img-fallback article-img-fb" style="display:none">MINDNEWSNG</div>
             </div>
 
             <div class="article-body">
                 <p class="lead">${esc(article.description)}</p>
-                <p>This is the full article content for: <strong>${esc(article.title)}</strong>. In a production environment, the full article text would be pulled from the RSS feed or your CMS.</p>
-                <p>Nigerian news readers turn to Mindnewsng for trusted, accurate, and timely reporting on the stories that matter most. Our editorial team works around the clock to bring you verified information.</p>
-                <p>The story continues to develop as more details emerge. Stay with Mindnewsng for the latest updates on this developing story.</p>
-                <h2>Key Takeaways</h2>
-                <ul>
-                    <li>This story is developing and will be updated</li>
-                    <li>Follow Mindnewsng for breaking news alerts</li>
-                    <li>Share this story with friends and family</li>
-                </ul>
-                <p>Bookmark Mindnewsng and check back regularly for the latest updates on this and other important stories affecting Nigeria and Nigerians worldwide.</p>
+                ${articleBody(article)}
             </div>
 
             <div class="article-share">
@@ -872,7 +911,7 @@ function buildArticlePage(article, allArticles) {
                     ${related.map(a => `
                     <a href="${a.slug}.html" class="card article-card">
                         <div class="news-img ratio-16x9">
-                            <img src="${esc(a.image || placeholderImg(a.id, 300, 169))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <img src="${esc(a.image || articlePlaceholder(a, 300, 169))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                             <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                         </div>
                         <span class="category-tag">${esc(articleCategory(a))}</span>

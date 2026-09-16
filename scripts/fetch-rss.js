@@ -38,12 +38,37 @@ function categorize(text) {
 }
 
 function extractImage(xml) {
-  // Try media:content, media:thumbnail, enclosure, og:image in description, or defaults
+  // Try media:content, media:thumbnail, enclosure, og:image in description, then any <img> inside the item
   const mediaMatch = xml.match(/<media:content[^>]*url="([^"]+)"/i)
     || xml.match(/<media:thumbnail[^>]*url="([^"]+)"/i)
     || xml.match(/<enclosure[^>]*url="([^"]+)"/i)
     || xml.match(/<img[^>]*src="([^"]+)"/i);
-  return mediaMatch ? mediaMatch[1] : null;
+  if (mediaMatch) return mediaMatch[1];
+  // Fallback: search the content:encoded HTML body for the first <img>
+  const contentEnc = xml.match(/<content:encoded[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/content:encoded>/i);
+  if (contentEnc) {
+    const imgMatch = contentEnc[1].match(/<img[^>]*src="([^"]+)"/i);
+    if (imgMatch) return imgMatch[1];
+  }
+  return null;
+}
+
+// Prefer full article body from <content:encoded>. Returns { body, isFull } where
+// isFull is true only when real article content (not just the summary) was available.
+function extractContent(xml) {
+  const contentEnc = xml.match(/<content:encoded[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/content:encoded>/i);
+  const desc = xml.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
+  const raw = contentEnc ? contentEnc[1] : (desc ? desc[1] : '');
+  if (!raw) return { body: '', isFull: false };
+  const clean = raw
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/&nbsp;/gi, ' ')
+    .trim();
+  const textLen = clean.replace(/<[^>]+>/g, '').trim().length;
+  // content:encoded is the real article body; plain description is only a summary
+  const isFull = Boolean(contentEnc) && textLen > 120;
+  return { body: clean, isFull };
 }
 
 function stripHtml(html) {
@@ -98,7 +123,10 @@ function parseRSS(xml, feedMeta) {
     const image = extractImage(block) || extractImage(description);
 
     const cleanTitle = stripHtml(title);
-    const cleanDesc = stripHtml(description).slice(0, 300);
+    const { body: fullContent, isFull } = extractContent(block);
+    const cleanDesc = isFull
+      ? stripHtml(fullContent.split(/\s+<\/p>/).slice(0, 3).join('')).slice(0, 300)
+      : stripHtml(description).slice(0, 300);
     const combinedText = `${cleanTitle} ${category}`;
     const autoCategory = categorize(combinedText);
 
@@ -107,6 +135,7 @@ function parseRSS(xml, feedMeta) {
         id: slugify(cleanTitle),
         title: cleanTitle,
         description: cleanDesc,
+        content: isFull ? fullContent : '',
         url: link.trim(),
         date: parseDate(pubDate),
         category: autoCategory,
@@ -123,16 +152,34 @@ function parseRSS(xml, feedMeta) {
 
 async function fetchFeed(feed) {
   try {
+    const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
     const res = await fetch(feed.url, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'MindnewsNG-Bot/1.0 (+https://mindnewsng.com)' },
+      redirect: 'manual',
+      headers: { 'User-Agent': UA },
     });
     clearTimeout(timeout);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const xml = await res.text();
-    const items = parseRSS(xml, feed);
+    if (!res.ok && (res.status < 300 || res.status >= 400)) throw new Error(`HTTP ${res.status}`);
+
+    let items = parseRSS(await res.text(), feed);
+    // Some feeds (e.g. Punch) ship the full body inside the 3xx response; others
+    // (BBC, Premium Times) return an empty 3xx and must be followed manually.
+    if (items.length === 0 && res.status >= 300 && res.status < 400) {
+      const location = res.headers.get('location');
+      if (location) {
+        const ctrl2 = new AbortController();
+        const timeout2 = setTimeout(() => ctrl2.abort(), 15000);
+        const res2 = await fetch(new URL(location, feed.url), {
+          signal: ctrl2.signal,
+          headers: { 'User-Agent': UA },
+        });
+        clearTimeout(timeout2);
+        if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
+        items = parseRSS(await res2.text(), feed);
+      }
+    }
     console.log(`  [OK] ${feed.source}: ${items.length} articles`);
     return items;
   } catch (err) {
@@ -155,6 +202,47 @@ function sortByDate(articles) {
   return articles.sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
+// Expand seed articles: build a proper HTML body and pick a themed placeholder image
+function expandSeeds(seeds) {
+  if (!Array.isArray(seeds)) return [];
+  const now = new Date();
+  return seeds.map((s, i) => {
+    const title = s.title || '';
+    const desc = s.description || '';
+    let image = s.image || null;
+    // Seeds carry no real photo; use a themed branded placeholder
+    if (!image) {
+      image = `https://placehold.co/800x450/0b0b0b/ffffff?text=${encodeURIComponent('Mindnewsng Guide')}`;
+    }
+    const paragraphs = desc
+      .match(/[^.!?]+[.!?]+/g)
+      .filter(p => p.trim().length > 20)
+      .map(p => `<p>${escapeHtml(p.trim())}</p>`)
+      .join('\n');
+    const content = s.content || `
+<h2>Overview</h2>
+${paragraphs || `<p>${escapeHtml(desc)}</p>`}
+<h2>Why it matters</h2>
+<p>This guide from Mindnewsng gives Nigerian readers a clear, practical breakdown of an important topic affecting everyday lives — from relocation and scholarship opportunities to finance and lifestyle decisions.</p>
+<p>For the most accurate and up-to-date details, always check the official source cited in this article, and speak to a verified and licensed professional before making any long-term commitment.</p>
+<p><em>Disclaimer: This article is for general information only and does not constitute legal, financial, or professional advice.</em></p>`;
+    return {
+      id: s.id || slugify(title),
+      title,
+      description: desc,
+      content,
+      url: s.url || '#',
+      date: s.date || new Date(new Date(now).setHours(now.getHours() - i)).toISOString(),
+      category: s.category || 'Guides',
+      subcategory: s.subcategory || '',
+      author: s.author || 'MindnewsNG',
+      source: s.source || 'MindnewsNG',
+      image,
+      slug: s.slug || slugify(title),
+    };
+  });
+}
+
 async function main() {
   console.log('MindnewsNG RSS Fetcher');
   console.log('='.repeat(40));
@@ -171,7 +259,7 @@ async function main() {
   let seedArticles = [];
   if (fs.existsSync(SEED_FILE)) {
     try {
-      seedArticles = JSON.parse(fs.readFileSync(SEED_FILE, 'utf-8'));
+      seedArticles = expandSeeds(JSON.parse(fs.readFileSync(SEED_FILE, 'utf-8')));
       console.log(`\nLoaded ${seedArticles.length} seed articles`);
     } catch (e) {
       console.warn(`\nFailed to read seed.json: ${e.message}`);
