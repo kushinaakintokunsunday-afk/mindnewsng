@@ -37,18 +37,32 @@ function categorize(text) {
   return 'News';
 }
 
+// Reject URLs that are not real images (e.g. youtube embed pages)
+function isImageUrl(url) {
+  if (!url) return false;
+  if (/youtube\.com|youtu\.be|youtube-nocookie\.com/i.test(url)) return false;
+  return /\.(jpe?g|png|webp|gif|avif|svg|bmp)(\?|#|$)/i.test(url) === false
+    ? /^https?:\/\/.+/i.test(url) && !/\.(php|asp|x[a]?ml|json|html)(\?|#|$)/i.test(url)
+    : true;
+}
+
 function extractImage(xml) {
   // Try media:content, media:thumbnail, enclosure, og:image in description, then any <img> inside the item
-  const mediaMatch = xml.match(/<media:content[^>]*url="([^"]+)"/i)
-    || xml.match(/<media:thumbnail[^>]*url="([^"]+)"/i)
-    || xml.match(/<enclosure[^>]*url="([^"]+)"/i)
-    || xml.match(/<img[^>]*src="([^"]+)"/i);
-  if (mediaMatch) return mediaMatch[1];
+  const candidates = [
+    /<media:content[^>]*url="([^"]+)"/i,
+    /<media:thumbnail[^>]*url="([^"]+)"/i,
+    /<enclosure[^>]*url="([^"]+)"/i,
+    /<img[^>]*src="([^"]+)"/i,
+  ];
+  for (const re of candidates) {
+    const m = xml.match(re);
+    if (m && isImageUrl(m[1])) return m[1];
+  }
   // Fallback: search the content:encoded HTML body for the first <img>
   const contentEnc = xml.match(/<content:encoded[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/content:encoded>/i);
   if (contentEnc) {
     const imgMatch = contentEnc[1].match(/<img[^>]*src="([^"]+)"/i);
-    if (imgMatch) return imgMatch[1];
+    if (imgMatch && isImageUrl(imgMatch[1])) return imgMatch[1];
   }
   return null;
 }

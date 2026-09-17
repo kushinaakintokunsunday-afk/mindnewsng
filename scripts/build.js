@@ -135,7 +135,7 @@ function esc(str) {
 }
 
 function placeholderImg(id, w = 600, h = 338) {
-  return `https://placehold.co/${w}x${h}/02b290/ffffff?text=Mindnewsng`;
+  return `https://placehold.co/${w}x${h}/111111/ffffff?text=Mindnewsng`;
 }
 
 // Category-branded placeholder for feeds that publish no article images.
@@ -143,6 +143,13 @@ function articlePlaceholder(article, w = 600, h = 338) {
   const cat = articleCategory(article);
   const hex = (getCatColor(cat) || '#111111').replace('#', '');
   return `https://placehold.co/${w}x${h}/${hex}/ffffff?text=${encodeURIComponent(`Mindnewsng ${cat}`)}`;
+}
+
+// Safe article image: returns a real feed image or a themed placeholder.
+function articleImage(article, w = 600, h = 338) {
+  const img = article.image || '';
+  if (img && /^https?:/i.test(img) && !/youtube\.com|youtu\.be/i.test(img) && !/\[object/i.test(img)) return img;
+  return articlePlaceholder(article, w, h);
 }
 
 // Sanitize RSS/feed HTML body before inlining it into article pages.
@@ -221,13 +228,12 @@ function orgSchema() {
   "name": "${esc(SITE.name)}",
   "url": "${SITE.url}",
   "description": "${esc(SITE.description)}",
-  "email": "${SITE.email}",
-  "contactPoint": { "@type": "ContactPoint", "telephone": "${SITE.phone}", "contactType": "customer service" }
+  "email": "${SITE.email}"
 }</script>`;
 }
 
 function newsArticleSchema(article, cat) {
-  const img = article.image || articlePlaceholder(article, 1200, 630);
+  const img = articleImage(article, 1200, 630);
   const pubDate = new Date(article.date).toISOString();
   const authorUrl = absUrl(`/authors/${slugify(article.author)}.html`);
   const pageUrl = absUrl(`/articles/${article.slug}.html`);
@@ -292,18 +298,22 @@ function authorsNames(articles) {
 
 // ─── HTML Templates ───────────────────────────────────────────────
 
-function header(activePage = 'Home') {
+function header(activePage = 'Home', articles = []) {
   const linksHtml = NAV_ITEMS.map(item => {
     const isActive = item.label === activePage;
     return `<li><a href="${item.href}"${isActive ? ' class="active"' : ''}>${item.label}</a></li>`;
   }).join('\n');
+  const tickerItems = sortNewest(articles).slice(0, 3)
+    .map(a => `<a href="../articles/${a.slug}.html">${esc(a.title)}</a>`)
+    .join('\n            <span>&#9679;</span>\n            ');
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#02b290">
+    <meta name="theme-color" content="#db0000">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
 </head>
@@ -341,11 +351,7 @@ function header(activePage = 'Home') {
         <div class="ticker-label">BREAKING</div>
         <div class="ticker-track"><div class="ticker-content">
             <span class="ticker-live-dot"></span>
-            <a href="#">FG announces new policy changes effective next month - LIVE</a>
-            <span>&#9679;</span>
-            <a href="#">Super Eagles qualify for AFCON after dramatic 2-1 win</a>
-            <span>&#9679;</span>
-            <a href="#">Naira gains against dollar as CBN injects liquidity</a>
+            ${tickerItems}
         </div></div>
     </div>`;
 }
@@ -375,16 +381,8 @@ function footer() {
             </div>
             <div class="footer-col footer-social">
                 <h4>Follow Us</h4>
-                <div class="social-links">
-                    <a href="#" aria-label="Facebook">FB</a>
-                    <a href="#" aria-label="Twitter">X</a>
-                    <a href="#" aria-label="Instagram">IG</a>
-                    <a href="#" aria-label="YouTube">YT</a>
-                </div>
-                <h4>Contact</h4>
                 <p class="footer-contact">
-                    <a href="mailto:${SITE.email}">${SITE.email}</a><br>
-                    <a href="tel:${SITE.phone}">${SITE.phone}</a>
+                    <a href="mailto:${SITE.email}">${SITE.email}</a>
                 </p>
             </div>
         </div></div>
@@ -400,7 +398,7 @@ function adBlock(size = '728x90') {
 
 function articleCard(article, size = 'full') {
   const cat = articleCategory(article);
-  const img = article.image || articlePlaceholder(article);
+  const img = articleImage(article);
   const href = `../articles/${article.slug}.html`;
   const read = readingTime(article);
   return `
@@ -432,7 +430,7 @@ function trendingItem(article, index) {
 
 function featuredCard(article, imgW = 300, imgH = 169) {
   const cat = articleCategory(article);
-  const img = article.image || articlePlaceholder(article, imgW, imgH);
+  const img = articleImage(article, imgW, imgH);
   return `
     <a href="articles/${article.slug}.html" class="card featured-card">
         <div class="news-img ratio-16x9">
@@ -519,7 +517,8 @@ function buildIndex(articles) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${SITE.name} - ${SITE.tagline}</title>
     ${seoTags({ title: `${SITE.name} - ${SITE.tagline}`, description: SITE.description, path: '/', type: 'website' })}
-    <meta name="theme-color" content="#02b290">
+    <meta name="theme-color" content="#db0000">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     ${orgSchema()}
@@ -580,7 +579,7 @@ function buildIndex(articles) {
             <div class="hero-main">
                 <a href="articles/${hero1.slug}.html" class="card card-main">
                     <div class="news-img ratio-16x9">
-                        <img src="${esc(hero1.image || articlePlaceholder(hero1))}" alt="${esc(hero1.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(articleImage(hero1))}" alt="${esc(hero1.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                     </div>
                     <span class="category-tag">${esc(articleCategory(hero1))}</span>
@@ -597,7 +596,7 @@ function buildIndex(articles) {
             <div class="hero-main-wrapper">
                 <a href="articles/${hero2.slug}.html" class="card card-main">
                     <div class="news-img ratio-16x9">
-                        <img src="${esc(hero2.image || articlePlaceholder(hero2, 400, 225))}" alt="${esc(hero2.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(articleImage(hero2, 400, 225))}" alt="${esc(hero2.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                     </div>
                     <span class="category-tag">${esc(articleCategory(hero2))}</span>
@@ -617,7 +616,7 @@ function buildIndex(articles) {
                 ${latest.slice(0, 3).map(a => `
                 <a href="articles/${a.slug}.html" class="card card-horizontal">
                     <div class="news-img thumb">
-                        <img src="${esc(a.image || articlePlaceholder(a, 120, 80))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(articleImage(a, 120, 80))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">M</div>
                     </div>
                     <h3 class="headline-sm">${esc(a.title)}</h3>
@@ -628,7 +627,7 @@ function buildIndex(articles) {
                 ${latest.slice(3, 6).map(a => `
                 <a href="articles/${a.slug}.html" class="card card-horizontal">
                     <div class="news-img thumb">
-                        <img src="${esc(a.image || articlePlaceholder(a, 120, 80))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(articleImage(a, 120, 80))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">M</div>
                     </div>
                     <h3 class="headline-sm">${esc(a.title)}</h3>
@@ -643,7 +642,7 @@ function buildIndex(articles) {
             <a href="pages/news.html" class="section-link">More Latest &rarr;</a>
         </div>
         <section class="featured-collection">
-            ${featured.map(featuredCard).join('\n')}
+            ${featured.map(a => featuredCard(a)).join('\n')}
         </section>
 
         <!-- MOST SHARED -->
@@ -657,7 +656,7 @@ function buildIndex(articles) {
               <a href="articles/${a.slug}.html" class="card shared-card">
                   <span class="shared-rank">${i + 1}</span>
                   <div class="news-img ratio-16x9">
-                      <img src="${esc(a.image || articlePlaceholder(a, 200, 120))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                      <img src="${esc(articleImage(a, 200, 120))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                       <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                   </div>
                   <h3 class="headline-sm">${esc(a.title)}</h3>
@@ -672,7 +671,7 @@ function buildIndex(articles) {
             <a href="pages/guides.html" class="section-link">More Guides &rarr;</a>
         </div>
         <section class="featured-collection">
-            ${(guidesArticles.length ? guidesArticles : guidesFallback).slice(0, 4).map(featuredCard).join('\n')}
+            ${(guidesArticles.length ? guidesArticles : guidesFallback).slice(0, 4).map(a => featuredCard(a)).join('\n')}
         </section>
 
         <div class="two-column">
@@ -714,7 +713,7 @@ function buildIndex(articles) {
             <a href="pages/jobs-education.html" class="section-link">More &rarr;</a>
         </div>
         <section class="featured-collection">
-            ${jobsArticles.map(featuredCard).join('\n')}
+            ${jobsArticles.map(a => featuredCard(a)).join('\n')}
         </section>` : '')}
 
         <!-- EDITORS' PICKS -->
@@ -722,7 +721,7 @@ function buildIndex(articles) {
             <h2 class="section-title">Editor's Picks</h2>
         </div>
         <section class="featured-collection">
-            ${editorsPicks.map(featuredCard).join('\n')}
+            ${editorsPicks.map(a => featuredCard(a)).join('\n')}
         </section>
 
     </main>
@@ -777,14 +776,14 @@ function buildCategoryPage(category, articles) {
       path: `/pages/${slug}.html`,
       type: 'website',
     })}
-    <meta name="theme-color" content="#02b290">
+    <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
     ${breadcrumbSchema(crumbs)}
 </head>
 <body>
-    ${header(category)}
+    ${header(category, catArticles)}
     <main class="container page-category">
         <div class="page-hero">
             <h1>${category} News</h1>
@@ -855,9 +854,9 @@ function buildArticlePage(article, allArticles) {
       description: article.description,
       path: `/articles/${article.slug}.html`,
       type: 'article',
-      image: article.image || undefined,
+      image: articleImage(article, 1200, 630),
     })}
-    <meta name="theme-color" content="#02b290">
+    <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
@@ -865,7 +864,7 @@ function buildArticlePage(article, allArticles) {
     ${newsArticleSchema(article, cat)}
 </head>
 <body>
-    ${header(cat)}
+    ${header(cat, allArticles)}
     <main class="container page-article">
         <nav class="breadcrumb" aria-label="Breadcrumb">
             ${breadcrumbs.map((b, i) => b.href
@@ -887,7 +886,7 @@ function buildArticlePage(article, allArticles) {
             </header>
 
             <div class="article-featured-img">
-                <img src="${esc(article.image || articlePlaceholder(article, 800, 450))}" alt="${esc(article.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <img src="${esc(articleImage(article, 800, 450))}" alt="${esc(article.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                 <div class="img-fallback article-img-fb" style="display:none">MINDNEWSNG</div>
             </div>
 
@@ -911,7 +910,7 @@ function buildArticlePage(article, allArticles) {
                     ${related.map(a => `
                     <a href="${a.slug}.html" class="card article-card">
                         <div class="news-img ratio-16x9">
-                            <img src="${esc(a.image || articlePlaceholder(a, 300, 169))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <img src="${esc(articleImage(a, 300, 169))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                             <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                         </div>
                         <span class="category-tag">${esc(articleCategory(a))}</span>
@@ -963,8 +962,9 @@ function buildAuthorPages(articles) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Our Journalists - ${SITE.name}</title>
     ${seoTags({ title: `Our Journalists - ${SITE.name}`, description: `Meet the journalists reporting for ${SITE.name}. Read articles by our named reporters and editorial team.`, path: '/authors/index.html' })}
-    <meta name="theme-color" content="#02b290">
+    <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
 </head>
@@ -1021,8 +1021,9 @@ function buildAuthorPages(articles) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${esc(name)} - Author profile - ${SITE.name}</title>
     ${seoTags({ title: `${name} - ${SITE.name}`, description: desc, path: `/authors/${slug}.html`, type: 'profile' })}
-    <meta name="theme-color" content="#02b290">
+    <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
     ${authorSchema(name, list)}
@@ -1088,8 +1089,9 @@ function buildStaticPages() {
 <html lang="en"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About - ${SITE.name}</title>
-    <meta name="theme-color" content="#02b290">
+    <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <header class="site-header"><div class="header-top">
@@ -1105,7 +1107,6 @@ function buildStaticPages() {
         <p>To provide truthful, balanced, and independent journalism that empowers Nigerians with the information they need to make informed decisions.</p>
         <h2>Contact Us</h2>
         <p>Email: <a href="mailto:${SITE.email}">${SITE.email}</a></p>
-        <p>Phone: <a href="tel:${SITE.phone}">${SITE.phone}</a></p>
     </main>
     ${footer()}
     <script src="js/main.js"></script>
@@ -1115,8 +1116,9 @@ function buildStaticPages() {
 <html lang="en"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - ${SITE.name}</title>
-    <meta name="theme-color" content="#02b290">
+    <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <header class="site-header"><div class="header-top">
@@ -1128,7 +1130,6 @@ function buildStaticPages() {
         <h1>Contact Us</h1>
         <p>Have a story tip, correction, or inquiry? Reach out to us:</p>
         <p>Email: <a href="mailto:${SITE.email}">${SITE.email}</a></p>
-        <p>Phone: <a href="tel:${SITE.phone}">${SITE.phone}</a></p>
         <p>We respond to all enquiries within 24 hours.</p>
     </main>
     ${footer()}
@@ -1139,8 +1140,9 @@ function buildStaticPages() {
 <html lang="en"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - ${SITE.name}</title>
-    <meta name="theme-color" content="#02b290">
+    <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <header class="site-header"><div class="header-top">
@@ -1164,8 +1166,9 @@ function buildStaticPages() {
 <html lang="en"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service - ${SITE.name}</title>
-    <meta name="theme-color" content="#02b290">
+    <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <header class="site-header"><div class="header-top">
@@ -1188,8 +1191,9 @@ function buildStaticPages() {
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editorial Policy - ${SITE.name}</title>
     ${seoTags({ title: `Editorial Policy - ${SITE.name}`, description: 'How Mindnewsng gathers, verifies, corrects and publishes news. Our editorial standards, ethics and corrections process.', path: '/editorial-policy.html' })}
-    <meta name="theme-color" content="#02b290">
+    <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     <link rel="stylesheet" href="css/styles.css">
     ${orgSchema()}
 </head><body>
