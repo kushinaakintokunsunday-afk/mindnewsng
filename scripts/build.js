@@ -17,10 +17,10 @@ const SITE = {
   url: 'https://kushinaakintokunsunday-afk.github.io/mindnewsng',
 };
 
-const CATEGORIES = ['News', 'Politics', 'Entertainment', 'Sports', 'Money', 'Jobs & Education', 'Technology', 'Lifestyle', 'World News', 'Guides'];
+const CATEGORIES = ['News', 'Politics', 'Entertainment', 'Sports', 'Money', 'Jobs & Education', 'Technology', 'Lifestyle', 'World News', 'Health', 'Guides'];
 
 // Tier-1 nav as displayed in the header (hierarchy: main first, "More" rest)
-const NAV_PRIMARY = ['Politics', 'Entertainment', 'Sports', 'Money', 'Jobs & Education', 'Technology', 'Lifestyle', 'World News', 'Guides'];
+const NAV_PRIMARY = ['Politics', 'Entertainment', 'Sports', 'Money', 'Jobs & Education', 'Technology', 'Lifestyle', 'World News', 'Health', 'Guides'];
 
 const NAV_ITEMS = [
   { label: 'Home', href: '../index.html' },
@@ -100,7 +100,8 @@ function articleCategory(article) {
 }
 
 function readingTime(article) {
-  const text = `${article.title} ${article.description}`;
+  const body = sanitizeHtml(article.content || article.body || '');
+  const text = `${article.title} ${article.description} ${body.replace(/<[^>]+>/g, ' ')}`;
   const words = text.split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
 }
@@ -122,8 +123,10 @@ function formatDate(d) {
   if (isNaN(date.getTime())) return 'Recently';
   const now = new Date();
   const diffMs = now - date;
-  const diffH = Math.floor(diffMs / 3600000);
-  if (diffH < 1) return 'Just now';
+  const diffM = Math.floor(diffMs / 60000);
+  if (diffM < 1) return 'Just now';
+  if (diffM < 60) return `${diffM}m ago`;
+  const diffH = Math.floor(diffM / 60);
   if (diffH < 24) return `${diffH}h ago`;
   const diffD = Math.floor(diffH / 24);
   if (diffD < 7) return `${diffD}d ago`;
@@ -307,18 +310,7 @@ function header(activePage = 'Home', articles = []) {
     .map(a => `<a href="../articles/${a.slug}.html">${esc(a.title)}</a>`)
     .join('\n            <span>&#9679;</span>\n            ');
 
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#db0000">
-    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../css/styles.css">
-</head>
-<body>
-    <header class="site-header">
+  return `<header class="site-header">
         <div class="header-top">
             <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
                 <span class="burger-line"></span>
@@ -404,7 +396,7 @@ function articleCard(article, size = 'full') {
   return `
     <a href="${href}" class="card ${size === 'thumb' ? 'card-horizontal' : 'article-card'}">
         <div class="news-img ${size === 'thumb' ? 'thumb' : 'ratio-16x9'}">
-            <img src="${esc(img)}" alt="${esc(article.title)}" loading="lazy"
+            <img src="${esc(img)}" alt="${esc(article.title)}" width="600" height="338" loading="lazy"
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
             <div class="img-fallback" style="display:none">MINDNEWSNG</div>
         </div>
@@ -434,7 +426,7 @@ function featuredCard(article, imgW = 300, imgH = 169) {
   return `
     <a href="articles/${article.slug}.html" class="card featured-card">
         <div class="news-img ratio-16x9">
-            <img src="${esc(img)}" alt="${esc(article.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <img src="${esc(img)}" alt="${esc(article.title)}" width="${imgW}" height="${imgH}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
             <div class="img-fallback" style="display:none">MINDNEWSNG</div>
         </div>
         <span class="category-tag">${esc(cat)}</span>
@@ -458,14 +450,21 @@ function buildSeoPages(articles) {
     <description>${esc(SITE.description)}</description>
     <language>en</language>
     <lastBuildDate>${now}</lastBuildDate>
-    ${latest.map(a => `
+    ${latest.map(a => {
+      const img = articleImage(a, 800, 450);
+      const body = sanitizeHtml(a.content || a.body || '');
+      const desc = body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 500) || a.description;
+      return `
     <item>
       <title>${esc(a.title)}</title>
-      <link>https://kushinaakintokunsunday-afk.github.io/mindnewsng/articles/${a.slug}.html</link>
-      <description>${esc(a.description)}</description>
+      <link>${SITE.url}/articles/${a.slug}.html</link>
+      <guid isPermaLink="true">${SITE.url}/articles/${a.slug}.html</guid>
+      <description>${esc(desc)}</description>
       <category>${esc(articleCategory(a))}</category>
+      <enclosure url="${esc(img)}" type="image/jpeg" length="0"/>
       <pubDate>${new Date(a.date).toUTCString()}</pubDate>
-    </item>`).join('\n')}
+    </item>`;
+    }).join('\n')}
   </channel>
 </rss>`;
 
@@ -479,12 +478,12 @@ function buildSeoPages(articles) {
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${urls.map(u => `
-  <url><loc>https://kushinaakintokunsunday-afk.github.io/mindnewsng${u}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>`).join('\n')}
+  <url><loc>${SITE.url}${u}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>`).join('\n')}
 </urlset>`;
 
   fs.writeFileSync(path.join(OUT, 'rss.xml'), rss);
   fs.writeFileSync(path.join(OUT, 'sitemap.xml'), sitemap);
-  fs.writeFileSync(path.join(OUT, 'robots.txt'), 'User-agent: *\nAllow: /\n\nSitemap: https://kushinaakintokunsunday-afk.github.io/mindnewsng/sitemap.xml');
+  fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE.url}/sitemap.xml`);
   console.log('  Built: rss.xml, sitemap.xml, robots.txt');
 }
 
@@ -531,7 +530,7 @@ function buildIndex(articles) {
                 <span class="burger-line"></span>
                 <span class="burger-line"></span>
             </button>
-            <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+<h1 class="site-logo"><a href="index.html"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a></h1>
             <button class="search-btn" id="searchBtn" aria-label="Search">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
             </button>
@@ -579,7 +578,7 @@ function buildIndex(articles) {
             <div class="hero-main">
                 <a href="articles/${hero1.slug}.html" class="card card-main">
                     <div class="news-img ratio-16x9">
-                        <img src="${esc(articleImage(hero1))}" alt="${esc(hero1.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(articleImage(hero1, 800, 450))}" alt="${esc(hero1.title)}" width="800" height="450" fetchpriority="high" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                     </div>
                     <span class="category-tag">${esc(articleCategory(hero1))}</span>
@@ -596,7 +595,7 @@ function buildIndex(articles) {
             <div class="hero-main-wrapper">
                 <a href="articles/${hero2.slug}.html" class="card card-main">
                     <div class="news-img ratio-16x9">
-                        <img src="${esc(articleImage(hero2, 400, 225))}" alt="${esc(hero2.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(articleImage(hero2, 400, 225))}" alt="${esc(hero2.title)}" width="400" height="225" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                     </div>
                     <span class="category-tag">${esc(articleCategory(hero2))}</span>
@@ -616,7 +615,7 @@ function buildIndex(articles) {
                 ${latest.slice(0, 3).map(a => `
                 <a href="articles/${a.slug}.html" class="card card-horizontal">
                     <div class="news-img thumb">
-                        <img src="${esc(articleImage(a, 120, 80))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(articleImage(a, 120, 80))}" alt="${esc(a.title)}" width="120" height="80" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">M</div>
                     </div>
                     <h3 class="headline-sm">${esc(a.title)}</h3>
@@ -627,7 +626,7 @@ function buildIndex(articles) {
                 ${latest.slice(3, 6).map(a => `
                 <a href="articles/${a.slug}.html" class="card card-horizontal">
                     <div class="news-img thumb">
-                        <img src="${esc(articleImage(a, 120, 80))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <img src="${esc(articleImage(a, 120, 80))}" alt="${esc(a.title)}" width="120" height="80" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                         <div class="img-fallback" style="display:none">M</div>
                     </div>
                     <h3 class="headline-sm">${esc(a.title)}</h3>
@@ -647,7 +646,7 @@ function buildIndex(articles) {
 
         <!-- MOST SHARED -->
         <div class="section-headline">
-            <h2 class="section-title">Most Shared</h2>
+            <h2 class="section-title">Top Stories</h2>
         </div>
         <div class="shared-grid">
             ${mostShared.map((a, i) => {
@@ -656,11 +655,11 @@ function buildIndex(articles) {
               <a href="articles/${a.slug}.html" class="card shared-card">
                   <span class="shared-rank">${i + 1}</span>
                   <div class="news-img ratio-16x9">
-                      <img src="${esc(articleImage(a, 200, 120))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                      <img src="${esc(articleImage(a, 200, 120))}" alt="${esc(a.title)}" width="200" height="120" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                       <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                   </div>
                   <h3 class="headline-sm">${esc(a.title)}</h3>
-                  <div class="card-info"><span class="info-share">${115000 - i * 7300 + 3100} shares</span><span class="info-time">${formatDate(a.date)}</span></div>
+                  <div class="card-info"><span class="info-time">${formatDate(a.date)}</span></div>
               </a>`;
             }).join('\n')}
         </div>
@@ -777,6 +776,7 @@ function buildCategoryPage(category, articles) {
       type: 'website',
     })}
     <meta name="theme-color" content="#db0000">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
@@ -857,6 +857,7 @@ function buildArticlePage(article, allArticles) {
       image: articleImage(article, 1200, 630),
     })}
     <meta name="theme-color" content="#db0000">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
@@ -886,7 +887,7 @@ function buildArticlePage(article, allArticles) {
             </header>
 
             <div class="article-featured-img">
-                <img src="${esc(articleImage(article, 800, 450))}" alt="${esc(article.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <img src="${esc(articleImage(article, 800, 450))}" alt="${esc(article.title)}" width="800" height="450" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                 <div class="img-fallback article-img-fb" style="display:none">MINDNEWSNG</div>
             </div>
 
@@ -910,7 +911,7 @@ function buildArticlePage(article, allArticles) {
                     ${related.map(a => `
                     <a href="${a.slug}.html" class="card article-card">
                         <div class="news-img ratio-16x9">
-                            <img src="${esc(articleImage(a, 300, 169))}" alt="${esc(a.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <img src="${esc(articleImage(a, 300, 169))}" alt="${esc(a.title)}" width="300" height="169" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                             <div class="img-fallback" style="display:none">MINDNEWSNG</div>
                         </div>
                         <span class="category-tag">${esc(articleCategory(a))}</span>
