@@ -112,6 +112,21 @@ function parseDate(dateStr) {
   return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
 }
 
+// Normalize messy feed bylines into clean journalist names.
+function cleanAuthor(name) {
+  if (!name) return 'MindnewsNG';
+  let n = stripHtml(name).trim();
+  // email address: keep the local part
+  const emailMatch = n.match(/^([^@\s]+)@/);
+  if (emailMatch) n = emailMatch[1];
+  // strip trailing domains like (vanguardngr.com) / vanguardngr.com
+  n = n.replace(/\([^)]*[.][^)]*\)/g, '').replace(/\s*[a-z0-9-]+\.(com|net|org|ng|co|io)[a-z0-9./]*\s*$/gi, '');
+  // collapse "The FRANCE 24 Observers" style names
+  n = n.replace(/\bThe\s+/i, '').replace(/\s+/g, ' ').trim();
+  if (!n || /^[^a-z]/i.test(n)) n = 'MindnewsNG';
+  return n;
+}
+
 function slugify(text) {
   return text
     .toLowerCase()
@@ -154,7 +169,7 @@ function parseRSS(xml, feedMeta) {
         date: parseDate(pubDate),
         category: autoCategory,
         subcategory: stripHtml(category),
-        author: stripHtml(author),
+        author: cleanAuthor(author),
         source: feedMeta.source,
         image: image || null,
         slug: slugify(cleanTitle),

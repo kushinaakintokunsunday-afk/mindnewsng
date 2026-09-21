@@ -119,4 +119,16 @@
       });
     });
   }
+
+  // Back to top
+  const backToTop = document.getElementById('backToTop');
+  if (backToTop) {
+    const toggleBtt = () => {
+      if (window.scrollY > 500) backToTop.classList.add('show');
+      else backToTop.classList.remove('show');
+    };
+    window.addEventListener('scroll', toggleBtt, { passive: true });
+    toggleBtt();
+    backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
 })();

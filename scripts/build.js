@@ -15,6 +15,7 @@ const SITE = {
   phone: '+234 800 000 0000',
   baseUrl: '/',
   url: 'https://kushinaakintokunsunday-afk.github.io/mindnewsng',
+  adsense: '',
 };
 
 const CATEGORIES = ['News', 'Politics', 'Entertainment', 'Sports', 'Money', 'Jobs & Education', 'Technology', 'Lifestyle', 'World News', 'Health', 'Guides'];
@@ -238,7 +239,8 @@ function orgSchema() {
 function newsArticleSchema(article, cat) {
   const img = articleImage(article, 1200, 630);
   const pubDate = new Date(article.date).toISOString();
-  const authorUrl = absUrl(`/authors/${slugify(article.author)}.html`);
+  const author = cleanAuthorName(article.author);
+  const authorUrl = absUrl(`/authors/${slugify(author)}.html`);
   const pageUrl = absUrl(`/articles/${article.slug}.html`);
   const data = {
     '@context': 'https://schema.org',
@@ -251,7 +253,7 @@ function newsArticleSchema(article, cat) {
     articleSection: cat,
     inLanguage: 'en',
     mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
-    author: { '@type': 'Person', name: article.author, url: authorUrl },
+    author: { '@type': 'Person', name: author, url: authorUrl },
     publisher: { '@id': `${SITE.url}/#org` },
     sourceOrganization: { '@type': 'Organization', name: article.source },
   };
@@ -290,10 +292,22 @@ function sortNewest(articles) {
   return [...articles].sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
+// Normalize messy feed bylines into clean journalist names (mirrors fetch-rss).
+function cleanAuthorName(name) {
+  if (!name) return 'Mindnewsng Staff';
+  let n = String(name).trim();
+  const emailMatch = n.match(/^([^@\s]+)@/);
+  if (emailMatch) n = emailMatch[1];
+  n = n.replace(/\([^)]*[.][^)]*\)/g, '').replace(/\s*[a-z0-9-]+\.(com|net|org|ng|co|io)[a-z0-9./]*\s*$/gi, '');
+  n = n.replace(/\bThe\s+/i, '').replace(/\s+/g, ' ').trim();
+  if (!n || /^[^a-z]/i.test(n)) n = 'Mindnewsng Staff';
+  return n;
+}
+
 function authorsNames(articles) {
   const merged = {};
   for (const a of articles) {
-    const name = a.author || 'Mindnewsng Staff';
+    const name = cleanAuthorName(a.author);
     merged[name] = true;
   }
   return Object.keys(merged);
@@ -310,7 +324,8 @@ function header(activePage = 'Home', articles = []) {
     .map(a => `<a href="../articles/${a.slug}.html">${esc(a.title)}</a>`)
     .join('\n            <span>&#9679;</span>\n            ');
 
-  return `<header class="site-header">
+  return `<a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
         <div class="header-top">
             <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
                 <span class="burger-line"></span>
@@ -384,7 +399,21 @@ function footer() {
     </footer>`;
 }
 
+function backToTopBtn() {
+  return `<button class="back-to-top" id="backToTop" aria-label="Back to top">&uarr;</button>`;
+}
+
+function adsenseScript() {
+  if (!SITE.adsense) return '';
+  return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(SITE.adsense)}" crossorigin="anonymous"></script>`;
+}
+
 function adBlock(size = '728x90') {
+  // AdSense-ready: set SITE.adsense to "ca-pub-XXXX" to serve real ads.
+  if (SITE.adsense) {
+    const dims = size.split('x').map(Number);
+    return `<div class="ad"><span class="ad-label">Advertisement</span><ins class="adsbygoogle" style="display:inline-block;width:${dims[0]}px;height:${dims[1]}px" data-ad-client="${esc(SITE.adsense)}" data-ad-slot="${size.replace('x', '').padEnd(5, '0')}" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>`;
+  }
   return `<div class="ad"><span class="ad-label">Advertisement</span><div class="ad-placeholder">Ad Space ${size}</div></div>`;
 }
 
@@ -484,7 +513,13 @@ function buildSeoPages(articles) {
   fs.writeFileSync(path.join(OUT, 'rss.xml'), rss);
   fs.writeFileSync(path.join(OUT, 'sitemap.xml'), sitemap);
   fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE.url}/sitemap.xml`);
-  console.log('  Built: rss.xml, sitemap.xml, robots.txt');
+  if (SITE.adsense) {
+    fs.writeFileSync(path.join(OUT, 'ads.txt'), `google.com, ${SITE.adsense.replace('ca-pub-', '')}, DIRECT, f08c47fec0942fa0\n`);
+  } else {
+    const sample = 'google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0';
+    fs.writeFileSync(path.join(OUT, 'ads.txt'), '# Remove the # below to enable AdSense ads\n' + sample + '\n');
+  }
+  console.log('  Built: rss.xml, sitemap.xml, robots.txt, ads.txt');
 }
 
 function buildIndex(articles) {
@@ -518,11 +553,13 @@ function buildIndex(articles) {
     ${seoTags({ title: `${SITE.name} - ${SITE.tagline}`, description: SITE.description, path: '/', type: 'website' })}
     <meta name="theme-color" content="#db0000">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+    ${adsenseScript()}
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     ${orgSchema()}
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header">
         <div class="header-top">
             <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
@@ -563,7 +600,7 @@ function buildIndex(articles) {
         </div></div>
     </div>
 
-    <main class="container">
+    <main id="main-content" class="container">
         ${adBlock('728x90')}
 
         <!-- BREAKING -->
@@ -725,6 +762,7 @@ function buildIndex(articles) {
 
     </main>
     ${footer()}
+    ${backToTopBtn()}
     <script src="js/main.js"></script>
     <script>
       window.__ARTICLES__ = ${JSON.stringify(normalized.map(a => ({ id: a.id, title: a.title, slug: a.slug, category: a.category })))};
@@ -777,6 +815,7 @@ function buildCategoryPage(category, articles) {
     })}
     <meta name="theme-color" content="#db0000">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
+    ${adsenseScript()}
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
@@ -784,7 +823,7 @@ function buildCategoryPage(category, articles) {
 </head>
 <body>
     ${header(category, catArticles)}
-    <main class="container page-category">
+    <main id="main-content" class="container page-category">
         <div class="page-hero">
             <h1>${category} News</h1>
             <p>Latest ${category.toLowerCase()} news and updates from Nigeria and around the world</p>
@@ -819,6 +858,7 @@ function buildCategoryPage(category, articles) {
         </div>
     </main>
     ${footer()}
+    ${backToTopBtn()}
     <script src="../js/main.js"></script>
     <script>
       window.__ARTICLES__ = ${JSON.stringify(articles.map(a => ({ id: a.id, title: a.title, slug: a.slug, category: a.category })))};
@@ -858,6 +898,7 @@ function buildArticlePage(article, allArticles) {
     })}
     <meta name="theme-color" content="#db0000">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
+    ${adsenseScript()}
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
@@ -866,7 +907,7 @@ function buildArticlePage(article, allArticles) {
 </head>
 <body>
     ${header(cat, allArticles)}
-    <main class="container page-article">
+    <main id="main-content" class="container page-article">
         <nav class="breadcrumb" aria-label="Breadcrumb">
             ${breadcrumbs.map((b, i) => b.href
               ? `<a href="${b.href}">${esc(b.label)}</a><span class="sep">/</span>`
@@ -879,7 +920,7 @@ function buildArticlePage(article, allArticles) {
                 <span class="category-tag" style="--cat-color:${getCatColor(cat)}">${esc(cat)}</span>
                 <h1>${esc(article.title)}</h1>
                 <div class="article-meta">
-                    <span class="meta-author">By <a href="../authors/${slugify(article.author)}.html" class="author-link">${esc(article.author)}</a></span>
+                    <span class="meta-author">By <a href="../authors/${slugify(cleanAuthorName(article.author))}.html" class="author-link">${esc(cleanAuthorName(article.author))}</a></span>
                     <span class="meta-source">${esc(article.source)}</span>
                     <span class="meta-date">${formatDate(article.date)}</span>
                     <span class="meta-read">${readingTime(article)} min read</span>
@@ -923,6 +964,7 @@ function buildArticlePage(article, allArticles) {
         </article>
     </main>
     ${footer()}
+    ${backToTopBtn()}
     <script src="../js/main.js"></script>
     <script>window.__ARTICLES__ = ${JSON.stringify(allArticles.map(a => ({ id: a.id, title: a.title, slug: a.slug, category: a.category })))};</script>
 </body>
@@ -935,7 +977,7 @@ function buildArticlePage(article, allArticles) {
 function buildAuthorPages(articles) {
   const byAuthor = {};
   for (const a of articles) {
-    const name = a.author || 'Mindnewsng Staff';
+    const name = cleanAuthorName(a.author);
     (byAuthor[name] = byAuthor[name] || []).push(a);
   }
 
@@ -966,10 +1008,12 @@ function buildAuthorPages(articles) {
     <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
+    ${adsenseScript()}
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header">
         <div class="header-top">
             <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
@@ -992,7 +1036,7 @@ function buildAuthorPages(articles) {
             </div>
         </div>
     </header>
-    <main class="container page-category">
+    <main id="main-content" class="container page-category">
         <div class="page-hero">
             <h1>Our Journalists</h1>
             <p>Meet the reporters and editorial team behind ${SITE.name}</p>
@@ -1007,6 +1051,7 @@ function buildAuthorPages(articles) {
         </div>
     </main>
     ${footer()}
+    ${backToTopBtn()}
     <script src="../js/main.js"></script>
 </body></html>`;
   fs.writeFileSync(path.join(OUT, 'authors', 'index.html'), dirPage);
@@ -1025,11 +1070,13 @@ function buildAuthorPages(articles) {
     <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
+    ${adsenseScript()}
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
     ${authorSchema(name, list)}
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header">
         <div class="header-top">
             <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
@@ -1052,7 +1099,7 @@ function buildAuthorPages(articles) {
             </div>
         </div>
     </header>
-    <main class="container page-category">
+    <main id="main-content" class="container page-category">
         <div class="page-hero author-hero">
             <div class="author-avatar">${esc(name.split(' ').map(w => w[0]).slice(0, 2).join(''))}</div>
             <div>
@@ -1077,6 +1124,7 @@ function buildAuthorPages(articles) {
         </div>
     </main>
     ${footer()}
+    ${backToTopBtn()}
     <script src="../js/main.js"></script>
 </body></html>`;
     fs.writeFileSync(path.join(OUT, 'authors', `${slug}.html`), html);
@@ -1093,14 +1141,16 @@ function buildStaticPages() {
     <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+    ${adsenseScript()}
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header"><div class="header-top">
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
         <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div></header>
-    <main class="container page-static">
+    <main id="main-content" class="container page-static">
         <h1>About Mindnewsng</h1>
         <p>Mindnewsng is a leading Nigerian digital newspaper committed to delivering accurate, timely, and comprehensive news coverage.</p>
         <p>Founded with the mission to keep Nigerians informed, we cover politics, business, entertainment, sports, technology, health, lifestyle and world news.</p>
@@ -1110,6 +1160,7 @@ function buildStaticPages() {
         <p>Email: <a href="mailto:${SITE.email}">${SITE.email}</a></p>
     </main>
     ${footer()}
+    ${backToTopBtn()}
     <script src="js/main.js"></script>
 </body></html>`;
 
@@ -1120,20 +1171,23 @@ function buildStaticPages() {
     <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+    ${adsenseScript()}
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header"><div class="header-top">
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
         <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div></header>
-    <main class="container page-static">
+    <main id="main-content" class="container page-static">
         <h1>Contact Us</h1>
         <p>Have a story tip, correction, or inquiry? Reach out to us:</p>
         <p>Email: <a href="mailto:${SITE.email}">${SITE.email}</a></p>
         <p>We respond to all enquiries within 24 hours.</p>
     </main>
     ${footer()}
+    ${backToTopBtn()}
     <script src="js/main.js"></script>
 </body></html>`;
 
@@ -1144,14 +1198,16 @@ function buildStaticPages() {
     <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+    ${adsenseScript()}
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header"><div class="header-top">
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
         <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div></header>
-    <main class="container page-static">
+    <main id="main-content" class="container page-static">
         <h1>Privacy Policy</h1>
         <p>Mindnewsng respects your privacy. We collect minimal data to improve our service and do not sell personal information to third parties.</p>
         <h2>Cookies</h2>
@@ -1160,6 +1216,7 @@ function buildStaticPages() {
         <p>We collect only the data necessary to provide our service, including email addresses for newsletter subscribers.</p>
     </main>
     ${footer()}
+    ${backToTopBtn()}
     <script src="js/main.js"></script>
 </body></html>`;
 
@@ -1170,20 +1227,23 @@ function buildStaticPages() {
     <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+    ${adsenseScript()}
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header"><div class="header-top">
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
         <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div></header>
-    <main class="container page-static">
+    <main id="main-content" class="container page-static">
         <h1>Terms of Service</h1>
         <p>By using Mindnewsng, you agree to these terms. Our content is provided for informational purposes.</p>
         <h2>Content</h2>
         <p>All content on Mindnewsng is protected by copyright. Reproduction without permission is prohibited.</p>
     </main>
     ${footer()}
+    ${backToTopBtn()}
     <script src="js/main.js"></script>
 </body></html>`;
 
@@ -1195,15 +1255,17 @@ function buildStaticPages() {
     <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+    ${adsenseScript()}
     <link rel="stylesheet" href="css/styles.css">
     ${orgSchema()}
 </head><body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header"><div class="header-top">
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
         <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div></header>
-    <main class="container page-static">
+    <main id="main-content" class="container page-static">
         <h1>Editorial Policy</h1>
         <p>Mindnewsng is committed to truthful, fair and independent journalism in service of the Nigerian public. Our editorial standards are simple and non-negotiable.</p>
         <h2>Accuracy and Verification</h2>
@@ -1220,6 +1282,35 @@ function buildStaticPages() {
         <p>We avoid publishing content that promotes hatred, discrimination or violence against any group, and we take care when reporting on sensitive topics such as violence, tragedy and vulnerable individuals.</p>
     </main>
     ${footer()}
+    ${backToTopBtn()}
+    <script src="js/main.js"></script>
+</body></html>`;
+
+  const notFound = `<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - ${SITE.name}</title>
+    <meta name="robots" content="noindex, follow">
+    <meta name="theme-color" content="#db0000">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+    ${adsenseScript()}
+    <link rel="stylesheet" href="css/styles.css">
+</head><body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header"><div class="header-top">
+        <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
+        <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+        <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+    </div></header>
+    <main id="main-content" class="container page-static">
+        <h1>404 - Page Not Found</h1>
+        <p>The page you're looking for doesn't exist, may have been removed, or its name may have changed as we refresh our coverage.</p>
+        <p>Head back to the <a href="index.html">homepage</a> for the latest Nigeria news, or try searching above.</p>
+        <p><a href="index.html" class="btn">&larr; Back to Homepage</a></p>
+    </main>
+    ${footer()}
+    ${backToTopBtn()}
     <script src="js/main.js"></script>
 </body></html>`;
 
@@ -1228,7 +1319,8 @@ function buildStaticPages() {
   fs.writeFileSync(path.join(OUT, 'privacy.html'), privacy);
   fs.writeFileSync(path.join(OUT, 'terms.html'), terms);
   fs.writeFileSync(path.join(OUT, 'editorial-policy.html'), editorial);
-  console.log('  Built: about.html, contact.html, privacy.html, terms.html, editorial-policy.html');
+  fs.writeFileSync(path.join(OUT, '404.html'), notFound);
+  console.log('  Built: about.html, contact.html, privacy.html, terms.html, editorial-policy.html, 404.html');
 }
 
 function copyAssets() {
