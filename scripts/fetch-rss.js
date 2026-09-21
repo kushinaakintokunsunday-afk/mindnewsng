@@ -53,15 +53,17 @@ function extractImage(xml) {
     /<media:thumbnail[^>]*url="([^"]+)"/i,
     /<enclosure[^>]*url="([^"]+)"/i,
     /<img[^>]*src="([^"]+)"/i,
+    /<img[^>]*data-src="([^"]+)"/i,
   ];
   for (const re of candidates) {
     const m = xml.match(re);
     if (m && isImageUrl(m[1])) return m[1];
   }
-  // Fallback: search the content:encoded HTML body for the first <img>
+  // Fallback: search the content:encoded HTML body for the first <img> or data-src lazyload
   const contentEnc = xml.match(/<content:encoded[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/content:encoded>/i);
   if (contentEnc) {
-    const imgMatch = contentEnc[1].match(/<img[^>]*src="([^"]+)"/i);
+    let imgMatch = contentEnc[1].match(/<img[^>]*src="([^"]+)"/i)
+      || contentEnc[1].match(/<img[^>]*data-src="([^"]+)"/i);
     if (imgMatch && isImageUrl(imgMatch[1])) return imgMatch[1];
   }
   return null;

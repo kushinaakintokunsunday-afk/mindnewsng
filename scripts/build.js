@@ -149,10 +149,31 @@ function articlePlaceholder(article, w = 600, h = 338) {
   return `https://placehold.co/${w}x${h}/${hex}/ffffff?text=${encodeURIComponent(`Mindnewsng ${cat}`)}`;
 }
 
-// Safe article image: returns a real feed image or a themed placeholder.
+function isSafeImageUrl(url) {
+  if (!url) return false;
+  if (!/^https?:/i.test(url)) return false;
+  if (/youtube\.com|youtu\.be|youtube-nocookie\.com/i.test(url)) return false;
+  if (/\[object/i.test(url)) return false;
+  return true;
+}
+
+// First real image found inside an article body (feeds often embed the hero in content).
+function firstBodyImage(article) {
+  const raw = article.content || article.body || '';
+  const m = String(raw).match(/<img[^>]*src=["']([^"']+)["']/i);
+  if (m && isSafeImageUrl(m[1])) return m[1];
+  // some feeds lazy-load with data-src or class lazy
+  const ds = String(raw).match(/<img[^>]*data-src=["']([^"']+)["']/i);
+  if (ds && isSafeImageUrl(ds[1])) return ds[1];
+  return null;
+}
+
+// Safe article image: feed image, else first image in the body, else a themed placeholder.
 function articleImage(article, w = 600, h = 338) {
   const img = article.image || '';
-  if (img && /^https?:/i.test(img) && !/youtube\.com|youtu\.be/i.test(img) && !/\[object/i.test(img)) return img;
+  if (isSafeImageUrl(img)) return img;
+  const bodyImg = firstBodyImage(article);
+  if (bodyImg) return bodyImg;
   return articlePlaceholder(article, w, h);
 }
 
