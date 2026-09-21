@@ -46,6 +46,12 @@ function isImageUrl(url) {
     : true;
 }
 
+// RSS/XML escapes ampersands; browsers need the real & in the src.
+function unescapeUrl(url) {
+  if (!url) return url;
+  return url.replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
+}
+
 function extractImage(xml) {
   // Try media:content, media:thumbnail, enclosure, og:image in description, then any <img> inside the item
   const candidates = [
@@ -57,14 +63,14 @@ function extractImage(xml) {
   ];
   for (const re of candidates) {
     const m = xml.match(re);
-    if (m && isImageUrl(m[1])) return m[1];
+    if (m && isImageUrl(m[1])) return unescapeUrl(m[1]);
   }
   // Fallback: search the content:encoded HTML body for the first <img> or data-src lazyload
   const contentEnc = xml.match(/<content:encoded[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/content:encoded>/i);
   if (contentEnc) {
     let imgMatch = contentEnc[1].match(/<img[^>]*src="([^"]+)"/i)
       || contentEnc[1].match(/<img[^>]*data-src="([^"]+)"/i);
-    if (imgMatch && isImageUrl(imgMatch[1])) return imgMatch[1];
+    if (imgMatch && isImageUrl(imgMatch[1])) return unescapeUrl(imgMatch[1]);
   }
   return null;
 }
@@ -305,9 +311,50 @@ async function main() {
   // Keep max 200 articles
   const final = sorted.slice(0, 200);
 
+  // Pinpoint dead/404 image URLs so we don't ship broken images
+  await prunefDeadImages(final);
+
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.writeFileSync(OUTPUT, JSON.stringify(final, null, 2));
   console.log(`\nWrote ${final.length} articles to ${path.relative(process.cwd(), OUTPUT)}`);
+}
+
+// Cheap HEAD probe: feeds (esp. Punch/WordPress) sometimes publish image URLs
+// that their CDN no longer serves. Without this we'd render broken <img> tags.
+async function prunefDeadImages(articles) {
+  const candidates = articles.filter(a => a.image && /^https?:/i.test(a.image));
+  if (candidates.length === 0) return;
+  console.log(`Verifying ${candidates.length} image URLs...`);
+
+  const done = [];
+  const dead = [];
+  const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+  async function checkUrl(url) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: controller.signal, headers: { 'User-Agent': UA, 'Referer': 'https://kushinaakintokunsunday-afk.github.io/' } });
+      clearTimeout(timeout);
+      const ok = res.status >= 200 && res.status < 400;
+      if (!ok) {
+        const get = await fetch(url, { method: 'GET', redirect: 'follow', signal: AbortSignal.timeout(8000), headers: { 'User-Agent': UA, 'Referer': 'https://kushinaakintokunsunday-afk.github.io/' } }).catch(() => null);
+        if (!get || get.status >= 400) return false;
+      }
+      return true;
+    } catch { return false; }
+  }
+
+  let index = 0;
+  for (const a of candidates) {
+    const ok = await checkUrl(a.image);
+    if (!ok) { dead.push(a.image); a.image = null; }
+    index++;
+    if (index % 20 === 0 || index === candidates.length) console.log(`  ${index}/${candidates.length}`);
+  }
+  if (dead.length) {
+    console.log(`  Dropped ${dead.length} dead image URL(s):`);
+    dead.slice(0, 5).forEach(u => console.log('    -', u.slice(0, 100)));
+  }
 }
 
 main().catch(err => {

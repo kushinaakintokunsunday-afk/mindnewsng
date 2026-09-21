@@ -161,17 +161,23 @@ function isSafeImageUrl(url) {
 function firstBodyImage(article) {
   const raw = article.content || article.body || '';
   const m = String(raw).match(/<img[^>]*src=["']([^"']+)["']/i);
-  if (m && isSafeImageUrl(m[1])) return m[1];
+  if (m && isSafeImageUrl(m[1])) return unescapeUrl(m[1]);
   // some feeds lazy-load with data-src or class lazy
   const ds = String(raw).match(/<img[^>]*data-src=["']([^"']+)["']/i);
-  if (ds && isSafeImageUrl(ds[1])) return ds[1];
+  if (ds && isSafeImageUrl(ds[1])) return unescapeUrl(ds[1]);
   return null;
+}
+
+// RSS/XML escapes ampersands; the browser needs a real & in the src.
+function unescapeUrl(url) {
+  if (!url) return url;
+  return url.replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
 }
 
 // Safe article image: feed image, else first image in the body, else a themed placeholder.
 function articleImage(article, w = 600, h = 338) {
   const img = article.image || '';
-  if (isSafeImageUrl(img)) return img;
+  if (isSafeImageUrl(img)) return unescapeUrl(img);
   const bodyImg = firstBodyImage(article);
   if (bodyImg) return bodyImg;
   return articlePlaceholder(article, w, h);
