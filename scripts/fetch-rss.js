@@ -309,7 +309,7 @@ async function main() {
     try {
       const existing = JSON.parse(fs.readFileSync(OUTPUT, 'utf-8'));
       manualPosts = (Array.isArray(existing) ? existing : []).filter(a => a && (a.manual === true || a.source === 'Mindnewsng'));
-      if (manualPosts.length) console.log(\nPreserving  manual/original post(s));
+      if (manualPosts.length) console.log(`\nPreserving ${manualPosts.length} manual/original post(s)`);
     } catch (e) {
       console.warn(\nFailed to read existing articles.json: );
     }
