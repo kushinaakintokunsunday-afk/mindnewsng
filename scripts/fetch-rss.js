@@ -303,13 +303,27 @@ async function main() {
     }
   }
 
-  // Merge: RSS on top, seed fills gaps
-  const merged = [...allArticles, ...seedArticles];
+  // Preserve manual/original posts (Mindnewsng or manual flag) across automation runs
+  let manualPosts = [];
+  if (fs.existsSync(OUTPUT)) {
+    try {
+      const existing = JSON.parse(fs.readFileSync(OUTPUT, 'utf-8'));
+      manualPosts = (Array.isArray(existing) ? existing : []).filter(a => a && (a.manual === true || a.source === 'Mindnewsng'));
+      if (manualPosts.length) console.log(\nPreserving  manual/original post(s));
+    } catch (e) {
+      console.warn(\nFailed to read existing articles.json: );
+    }
+  }
+
+  // Merge: manual first, then RSS, then seed fills gaps
+  const merged = [...manualPosts, ...allArticles, ...seedArticles];
   const deduped = deduplicate(merged);
   const sorted = sortByDate(deduped);
 
-  // Keep max 200 articles
-  const final = sorted.slice(0, 200);
+  // Keep max 200 articles, but never drop manual/original posts
+  const manuals = sorted.filter(a => a && (a.manual === true || a.source === 'Mindnewsng'));
+  const rest = sorted.filter(a => !(a && (a.manual === true || a.source === 'Mindnewsng')));
+  const final = [...manuals, ...rest].slice(0, Math.max(200, manuals.length));
 
   // Pinpoint dead/404 image URLs so we don't ship broken images
   await prunefDeadImages(final);
