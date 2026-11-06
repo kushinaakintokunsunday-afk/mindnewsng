@@ -311,7 +311,8 @@ async function main() {
       manualPosts = (Array.isArray(existing) ? existing : []).filter(a => a && (a.manual === true || a.source === 'Mindnewsng'));
       if (manualPosts.length) console.log(`\nPreserving ${manualPosts.length} manual/original post(s)`);
     } catch (e) {
-      console.warn(\nFailed to read existing articles.json: );
+      console.warn(`
+Failed to read existing articles.json: ${e.message}`);
     }
   }
 
