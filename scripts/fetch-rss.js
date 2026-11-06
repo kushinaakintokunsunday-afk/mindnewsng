@@ -336,26 +336,27 @@ async function main() {
 // Cheap HEAD probe: feeds (esp. Punch/WordPress) sometimes publish image URLs
 // that their CDN no longer serves. Without this we'd render broken <img> tags.
 async function prunefDeadImages(articles) {
-  const candidates = articles.filter(a => a.image && /^https?:/i.test(a.image));
+  // Never prune manual/original posts, and skip trusted domains that often block bot checks.
+  const trusted = /vanguardngr\.com|punchng\.com|guardian\.ng|channelstv\.com|premiumtimesng\.com|bbc\.co\.uk|bbci\.co\.uk|aljazeera\.com|france24\.com|unsplash\.com|wikimedia\.org|wp\.com|cloudfront\.net/i;
+  const candidates = articles.filter(a => a && !(a.manual === true || a.source === 'Mindnewsng') && a.image && /^https?:/i.test(a.image) && !trusted.test(a.image));
   if (candidates.length === 0) return;
   console.log(`Verifying ${candidates.length} image URLs...`);
 
-  const done = [];
   const dead = [];
   const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
   async function checkUrl(url) {
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
-      const res = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: controller.signal, headers: { 'User-Agent': UA, 'Referer': 'https://kushinaakintokunsunday-afk.github.io/' } });
-      clearTimeout(timeout);
-      const ok = res.status >= 200 && res.status < 400;
-      if (!ok) {
-        const get = await fetch(url, { method: 'GET', redirect: 'follow', signal: AbortSignal.timeout(8000), headers: { 'User-Agent': UA, 'Referer': 'https://kushinaakintokunsunday-afk.github.io/' } }).catch(() => null);
-        if (!get || get.status >= 400) return false;
-      }
-      return true;
-    } catch { return false; }
+      const get = await fetch(url, {
+        method: 'GET',
+        redirect: 'follow',
+        signal: AbortSignal.timeout(10000),
+        headers: { 'User-Agent': UA, 'Referer': 'https://mindnewsng.com/', 'Accept': 'image/*,*/*;q=0.8' }
+      }).catch(() => null);
+      if (!get) return true; // network/timeout: keep (benefit of doubt)
+      if (get.status === 404 || get.status === 410) return false; // definitively gone
+      if (get.status >= 200 && get.status < 400) return true;
+      return true; // 403/401/429/5xx from bot checks: keep, browser/onerror will handle
+    } catch { return true; }
   }
 
   let index = 0;
