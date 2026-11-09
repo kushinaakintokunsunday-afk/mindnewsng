@@ -16,6 +16,9 @@ const SITE = {
   baseUrl: '/',
   url: 'https://kushinaakintokunsunday-afk.github.io/mindnewsng',
   adsense: '',
+  // Google Analytics 4 Measurement ID (looks like G-XXXXXXXXXX).
+  // Create a free property at analytics.google.com and paste the ID here.
+  ga4: '',
 };
 
 const CATEGORIES = ['News', 'Politics', 'Entertainment', 'Sports', 'Money', 'Jobs & Education', 'Technology', 'Lifestyle', 'World News', 'Health', 'Guides'];
@@ -435,6 +438,19 @@ function adsenseScript() {
   return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(SITE.adsense)}" crossorigin="anonymous"></script>`;
 }
 
+function analyticsScript() {
+  const id = (SITE.ga4 || '').trim();
+  if (!/^G-[A-Z0-9]{6,}$/.test(id)) return ''; // unset or placeholder - skip snippet
+  return `
+    <script async src="https://www.googletagmanager.com/gtag/js?id=${esc(id)}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${esc(id)}');
+    </script>`;
+}
+
 function adBlock(size = '728x90') {
   // AdSense-ready: set SITE.adsense to "ca-pub-XXXX" to serve real ads.
   if (SITE.adsense) {
@@ -581,6 +597,7 @@ function buildIndex(articles) {
     <meta name="theme-color" content="#db0000">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
+    ${analyticsScript()}
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     ${orgSchema()}
@@ -843,6 +860,7 @@ function buildCategoryPage(category, articles) {
     <meta name="theme-color" content="#db0000">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
     ${adsenseScript()}
+    ${analyticsScript()}
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
@@ -926,6 +944,7 @@ function buildArticlePage(article, allArticles) {
     <meta name="theme-color" content="#db0000">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
     ${adsenseScript()}
+    ${analyticsScript()}
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
@@ -1036,6 +1055,7 @@ function buildAuthorPages(articles) {
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
     ${adsenseScript()}
+    ${analyticsScript()}
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
 </head>
@@ -1098,6 +1118,7 @@ function buildAuthorPages(articles) {
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
     ${adsenseScript()}
+    ${analyticsScript()}
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
     ${authorSchema(name, list)}
@@ -1169,6 +1190,7 @@ function buildStaticPages() {
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
+    ${analyticsScript()}
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -1199,6 +1221,7 @@ function buildStaticPages() {
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
+    ${analyticsScript()}
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -1226,6 +1249,7 @@ function buildStaticPages() {
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
+    ${analyticsScript()}
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -1255,6 +1279,7 @@ function buildStaticPages() {
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
+    ${analyticsScript()}
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -1283,6 +1308,7 @@ function buildStaticPages() {
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
+    ${analyticsScript()}
     <link rel="stylesheet" href="css/styles.css">
     ${orgSchema()}
 </head><body>
@@ -1322,6 +1348,7 @@ function buildStaticPages() {
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
+    ${analyticsScript()}
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <a class="skip-link" href="#main-content">Skip to content</a>
