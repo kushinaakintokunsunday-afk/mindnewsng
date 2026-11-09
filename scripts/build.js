@@ -14,7 +14,7 @@ const SITE = {
   email: 'info@mindnewsng.com',
   phone: '+234 800 000 0000',
   baseUrl: '/',
-  url: 'https://kushinaakintokunsunday-afk.github.io/mindnewsng',
+  url: 'https://mindnewsng.com',
   adsense: '',
   // Google Analytics 4 Measurement ID (looks like G-XXXXXXXXXX).
   // Create a free property at analytics.google.com and paste the ID here.
