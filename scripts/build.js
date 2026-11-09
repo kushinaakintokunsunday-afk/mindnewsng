@@ -18,7 +18,7 @@ const SITE = {
   adsense: '',
   // Google Analytics 4 Measurement ID (looks like G-XXXXXXXXXX).
   // Create a free property at analytics.google.com and paste the ID here.
-  ga4: '',
+  ga4: 'G-Z66NKBHZFN',
 };
 
 const CATEGORIES = ['News', 'Politics', 'Entertainment', 'Sports', 'Money', 'Jobs & Education', 'Technology', 'Lifestyle', 'World News', 'Health', 'Guides'];
