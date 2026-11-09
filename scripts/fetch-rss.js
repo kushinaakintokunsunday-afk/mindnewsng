@@ -10,6 +10,11 @@ const RSS_FEEDS = [
   { source: 'BBC Africa',     category: 'World News',  url: 'http://feeds.bbci.co.uk/news/world/africa/rss.xml' },
   { source: 'Channels TV',    category: 'News',        url: 'https://www.channelstv.com/feed/' },
   { source: 'Premium Times',  category: 'News',        url: 'https://www.premiumtimesng.com/feed/' },
+  // Google News search feeds: 'jobs abroad / visa / relocation' stories MSN often
+  // republishes (Legit.ng, TheCable, Punch, Guardian, Tribune, PM News...).
+  // Legit.ng's own RSS is blocked by a captcha wall, so we use Google News instead.
+  { source: 'Google News', category: 'Jobs & Education', url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('nigeria (jobs abroad OR work visa OR relocation) when:7d') + '&hl=en-NG&gl=NG&ceid=NG:en' },
+  { source: 'Google News', category: 'News',             url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('nigeria breaking news') + '&hl=en-NG&gl=NG&ceid=NG:en' },
   { source: 'Vanguard',       category: 'News',        url: 'https://www.vanguardngr.com/feed/' },
   { source: 'The Guardian',   category: 'News',        url: 'https://guardian.ng/feed/' },
   { source: 'Punch',          category: 'News',        url: 'https://punchng.com/feed/' },
