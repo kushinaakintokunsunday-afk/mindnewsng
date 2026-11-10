@@ -15,6 +15,9 @@ const RSS_FEEDS = [
   // Legit.ng's own RSS is blocked by a captcha wall, so we use Google News instead.
   { source: 'Google News', category: 'Jobs & Education', url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('nigeria (jobs abroad OR work visa OR relocation) when:7d') + '&hl=en-NG&gl=NG&ceid=NG:en' },
   { source: 'Google News', category: 'News',             url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('nigeria breaking news') + '&hl=en-NG&gl=NG&ceid=NG:en' },
+  // Legit.ng mirror via Google News (their own RSS returns 403); English items only,
+  // filtered by <source url> host in parseRSS below.
+  { source: 'Legit.ng',       category: 'News',        url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('site:legit.ng when:2d') + '&hl=en-NG&gl=NG&ceid=NG:en' },
   { source: 'Vanguard',       category: 'News',        url: 'https://www.vanguardngr.com/feed/' },
   { source: 'The Guardian',   category: 'News',        url: 'https://guardian.ng/feed/' },
   { source: 'Punch',          category: 'News',        url: 'https://punchng.com/feed/' },
@@ -156,6 +159,11 @@ function parseRSS(xml, feedMeta) {
   while ((match = itemRegex.exec(xml)) !== null) {
     const block = match[1];
 
+    // For Google-News-mirror feeds: skip items syndicated as Hausa.
+    const srcUrl = (block.match(/<source[^>]*url="([^"]+)"/i) || [])[1] || '';
+    if (feedMeta.source === 'Legit.ng' && srcUrl && srcUrl.includes('hausa.legit.ng')) continue;
+
+
     const title = (block.match(/<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i) || [])[1] || '';
     const link = (block.match(/<link[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i) || [])[1] || (block.match(/<link[^>]*\/>/i) || [])[0] || '';
     const description = (block.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i) || [])[1] || '';
@@ -164,7 +172,8 @@ function parseRSS(xml, feedMeta) {
     const category = (block.match(/<category[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/category>/i) || [])[1] || '';
     const image = extractImage(block) || extractImage(description);
 
-    const cleanTitle = stripHtml(title);
+    const strippedTitle = feedMeta.source === 'Legit.ng' ? stripHtml(title).replace(/\s*[-\u2013]\s*(Legit\.ng|Legit News)\s*$/i, '') : stripHtml(title);
+    const cleanTitle = strippedTitle;
     const { body: fullContent, isFull } = extractContent(block);
     const cleanDesc = isFull
       ? stripHtml(fullContent.split(/\s+<\/p>/).slice(0, 3).join('')).slice(0, 300)
