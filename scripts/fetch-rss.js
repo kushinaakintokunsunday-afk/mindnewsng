@@ -308,28 +308,26 @@ async function main() {
     }
   }
 
-  // Preserve manual/original posts (Mindnewsng or manual flag) across automation runs
-  let manualPosts = [];
+  // NEVER remove any article: load the entire existing articles.json and
+  // merge new RSS/seed items into it, so every story ever published stays live.
+  let existingPosts = [];
   if (fs.existsSync(OUTPUT)) {
     try {
       const existing = JSON.parse(fs.readFileSync(OUTPUT, 'utf-8'));
-      manualPosts = (Array.isArray(existing) ? existing : []).filter(a => a && (a.manual === true || a.source === 'Mindnewsng'));
-      if (manualPosts.length) console.log(`\nPreserving ${manualPosts.length} manual/original post(s)`);
+      existingPosts = (Array.isArray(existing) ? existing : []).filter(Boolean);
+      if (existingPosts.length) console.log(`\nPreserving all ${existingPosts.length} existing article(s)`);
     } catch (e) {
       console.warn(`
 Failed to read existing articles.json: ${e.message}`);
     }
   }
 
-  // Merge: manual first, then RSS, then seed fills gaps
-  const merged = [...manualPosts, ...allArticles, ...seedArticles];
+  // Merge: everything existing first (never dropped), then new RSS, then seed fills gaps
+  const merged = [...existingPosts, ...allArticles, ...seedArticles];
   const deduped = deduplicate(merged);
   const sorted = sortByDate(deduped);
 
-  // Keep max 200 articles, but never drop manual/original posts
-  const manuals = sorted.filter(a => a && (a.manual === true || a.source === 'Mindnewsng'));
-  const rest = sorted.filter(a => !(a && (a.manual === true || a.source === 'Mindnewsng')));
-  const final = [...manuals, ...rest].slice(0, Math.max(200, manuals.length));
+  const final = sorted;
 
   // Pinpoint dead/404 image URLs so we don't ship broken images
   await prunefDeadImages(final);
