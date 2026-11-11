@@ -362,7 +362,7 @@ function header(activePage = 'Home', articles = []) {
                 <span class="burger-line"></span>
                 <span class="burger-line"></span>
             </button>
-            <a href="../index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+            <a href="../index.html" class="site-logo"><img src="../images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
             <button class="search-btn" id="searchBtn" aria-label="Search">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
             </button>
@@ -599,6 +599,7 @@ function buildIndex(articles) {
     ${adsenseScript()}
     ${analyticsScript()}
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="css/styles.css">
     ${orgSchema()}
 </head>
@@ -611,7 +612,7 @@ function buildIndex(articles) {
                 <span class="burger-line"></span>
                 <span class="burger-line"></span>
             </button>
-<h1 class="site-logo"><a href="index.html"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a></h1>
+<h1 class="site-logo"><a href="index.html"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a></h1>
             <button class="search-btn" id="searchBtn" aria-label="Search">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
             </button>
@@ -862,6 +863,7 @@ function buildCategoryPage(category, articles) {
     ${adsenseScript()}
     ${analyticsScript()}
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="../favicon.ico">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
     ${breadcrumbSchema(crumbs)}
@@ -946,6 +948,7 @@ function buildArticlePage(article, allArticles) {
     ${adsenseScript()}
     ${analyticsScript()}
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="../favicon.ico">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
     ${breadcrumbSchema(breadcrumbs)}
@@ -1056,6 +1059,7 @@ function buildAuthorPages(articles) {
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
     ${adsenseScript()}
     ${analyticsScript()}
+    <link rel="icon" href="../favicon.ico">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
 </head>
@@ -1066,7 +1070,7 @@ function buildAuthorPages(articles) {
             <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
                 <span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span>
             </button>
-            <a href="../index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+            <a href="../index.html" class="site-logo"><img src="../images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
             <button class="search-btn" id="searchBtn" aria-label="Search">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
             </button>
@@ -1119,6 +1123,7 @@ function buildAuthorPages(articles) {
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
     ${adsenseScript()}
     ${analyticsScript()}
+    <link rel="icon" href="../favicon.ico">
     <link rel="stylesheet" href="../css/styles.css">
     ${orgSchema()}
     ${authorSchema(name, list)}
@@ -1130,7 +1135,7 @@ function buildAuthorPages(articles) {
             <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
                 <span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span>
             </button>
-            <a href="../index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+            <a href="../index.html" class="site-logo"><img src="../images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
             <button class="search-btn" id="searchBtn" aria-label="Search">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
             </button>
@@ -1191,12 +1196,13 @@ function buildStaticPages() {
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
     ${analyticsScript()}
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header"><div class="header-top">
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
-        <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+        <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div></header>
     <main id="main-content" class="container page-static">
@@ -1222,12 +1228,13 @@ function buildStaticPages() {
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
     ${analyticsScript()}
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header"><div class="header-top">
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
-        <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+        <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div></header>
     <main id="main-content" class="container page-static">
@@ -1250,12 +1257,13 @@ function buildStaticPages() {
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
     ${analyticsScript()}
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header"><div class="header-top">
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
-        <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+        <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div></header>
     <main id="main-content" class="container page-static">
@@ -1280,12 +1288,13 @@ function buildStaticPages() {
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
     ${analyticsScript()}
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header"><div class="header-top">
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
-        <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+        <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div></header>
     <main id="main-content" class="container page-static">
@@ -1309,13 +1318,14 @@ function buildStaticPages() {
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
     ${analyticsScript()}
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="css/styles.css">
     ${orgSchema()}
 </head><body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header"><div class="header-top">
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
-        <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+        <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div></header>
     <main id="main-content" class="container page-static">
@@ -1349,12 +1359,13 @@ function buildStaticPages() {
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
     ${adsenseScript()}
     ${analyticsScript()}
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="css/styles.css">
 </head><body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header"><div class="header-top">
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
-        <a href="index.html" class="site-logo"><span class="logo-text-fallback">Mind<span>news</span>ng</span></a>
+        <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div></header>
     <main id="main-content" class="container page-static">
@@ -1390,7 +1401,21 @@ function copyAssets() {
     fs.copyFileSync(JS_SRC, path.join(OUT, 'js', 'main.js'));
   }
 
-  console.log('  Copied assets (css, js)');
+  // Copy images (logo kit)
+  const IMG_DIR = path.join(ROOT, 'images');
+  if (fs.existsSync(IMG_DIR)) {
+    fs.mkdirSync(path.join(OUT, 'images'), { recursive: true });
+    for (const f of fs.readdirSync(IMG_DIR)) {
+      const src = path.join(IMG_DIR, f);
+      if (fs.statSync(src).isFile()) fs.copyFileSync(src, path.join(OUT, 'images', f));
+    }
+  }
+
+  // Copy favicon
+  const FAVICON = path.join(ROOT, 'favicon.ico');
+  if (fs.existsSync(FAVICON)) fs.copyFileSync(FAVICON, path.join(OUT, 'favicon.ico'));
+
+  console.log('  Copied assets (css, js, images, favicon)');
 }
 
 // ─── Main ─────────────────────────────────────────────────────────
