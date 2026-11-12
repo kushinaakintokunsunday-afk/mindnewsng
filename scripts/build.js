@@ -825,7 +825,7 @@ function buildIndex(articles) {
                     <span class="fe-cta">Get it &rarr;</span>
                 </div>
             </a>
-            <a href="store.html" class="fe-card">
+            <a href="tiktok-viral-prompt-pack.html" class="fe-card">
                 <img src="images/cover_tiktok.jpg" alt="TikTok Viral Prompt Pack" loading="lazy">
                 <div class="fe-body">
                     <span class="store-badge">50% off</span>
