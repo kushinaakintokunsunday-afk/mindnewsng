@@ -256,13 +256,11 @@ def main():
             n += 1
             continue
         try:
-            up = graph(f"{PAGE_ID}/photos",
-                       data={"file": None}) if False else None
-            # multipart upload
-            import mimetypes
-            boundary = "----mindnewsng" + str(int(time.time() * 1000))
+            # single multipart call: image + text together -> exactly one post
+            import uuid
+            boundary = "----mindnewsng" + uuid.uuid4().hex
+            fields = {"access_token": TOKEN, "published": "true", "message": msg}
             parts = []
-            fields = {"access_token": TOKEN, "published": "true"}
             for k, v in fields.items():
                 parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"{k}\"\r\n\r\n{v}\r\n".encode())
             parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"source\"; filename=\"post.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".encode())
@@ -276,8 +274,6 @@ def main():
             with urllib.request.urlopen(req, timeout=120) as r:
                 photo = json.loads(r.read().decode("utf-8"))
             post_id = photo.get("post_id") or photo.get("id")
-            # message text: photos API ignores message; attach via /{id}
-            graph(post_id, data={"message": msg}, method="POST")
             if url:
                 graph(f"{post_id}/comments",
                       data={"message": f"More details here: {url}"})
