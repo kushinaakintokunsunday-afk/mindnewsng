@@ -410,6 +410,7 @@ function footer() {
                 <ul>
                     <li><a href="${absUrl('/about.html')}">About Us</a></li>
                     <li><a href="${absUrl('/contact.html')}">Contact Us</a></li>
+                    <li><a href="${absUrl('/store.html')}">🛒 Store &ndash; Ebooks &amp; Guides</a></li>
                     <li><a href="${absUrl('/editorial-policy.html')}">Editorial Policy</a></li>
                     <li><a href="${absUrl('/authors/index.html')}">Our Journalists</a></li>
                     <li><a href="${absUrl('/privacy.html')}">Privacy Policy</a></li>
@@ -1379,13 +1380,99 @@ function buildStaticPages() {
     <script src="js/main.js"></script>
 </body></html>`;
 
+  const store = `<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ebooks Store - ${SITE.name}</title>
+    <meta name="description" content="Practical ebooks and prompt packs by Mindnewsng - grow your small business, go viral on TikTok and start your YouTube channel. Secure checkout via Selar with card, bank transfer and USSD.">
+    <meta name="theme-color" content="#db0000">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+    ${analyticsScript()}
+    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+      .store-hero { background: linear-gradient(135deg, #15161a 0%, #26282e 100%); color: #fff; border-radius: 14px; padding: 2.2rem 1.5rem; margin-bottom: 1.6rem; }
+      .store-hero h1 { margin: 0 0 .4rem; font-size: 1.9rem; }
+      .store-hero h1 span { color: #db0000; }
+      .store-hero p { margin: 0; color: #d9d9d9; max-width: 640px; }
+      .store-hero .slogan { display:inline-block; margin-top:.7rem; font-size:.72rem; letter-spacing:.22em; color:#ffd60a; text-transform:uppercase; }
+      .store-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.2rem; }
+      .store-card { background:#fff; border:1px solid #e8e8e8; border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
+      .store-card img { width:100%; aspect-ratio: 1 / 1; object-fit: cover; display:block; }
+      .store-card .sc-body { padding: 1rem 1.1rem 1.2rem; display:flex; flex-direction:column; gap:.5rem; flex:1; }
+      .store-card h3 { margin:0; font-size:1.02rem; line-height:1.35; }
+      .store-card .sc-desc { margin:0; color:#555; font-size:.86rem; line-height:1.5; flex:1; }
+      .store-price { display:flex; align-items:baseline; gap:.55rem; }
+      .store-price .now { font-weight:800; color:#15161a; font-size:1.08rem; }
+      .store-price .was { color:#999; text-decoration:line-through; font-size:.85rem; }
+      .store-badge { display:inline-block; background:#db0000; color:#fff; font-size:.68rem; font-weight:700; letter-spacing:.06em; padding:.25rem .55rem; border-radius:999px; width:fit-content; text-transform:uppercase; }
+      .buy-btn { display:block; text-align:center; background:#15161a; color:#ffd60a !important; font-weight:700; padding:.7rem .5rem; border-radius:9px; text-decoration:none; transition:background .2s; }
+      .buy-btn:hover { background:#db0000; color:#fff !important; }
+      .store-note { margin-top:1.4rem; padding:1rem 1.2rem; background:#f6f8f7; border:1px solid #e2e8e6; border-radius:10px; color:#444; font-size:.88rem; line-height:1.55; }
+    </style>
+</head><body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header"><div class="header-top">
+        <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
+        <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+        <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+    </div></header>
+    <main id="main-content" class="container page-static">
+        <div class="store-hero">
+            <h1>The Mindnewsng <span>Store</span></h1>
+            <p>Practical, no-fluff guides and prompt packs that help you earn, grow and build online. Download instantly after payment.</p>
+            <span class="slogan">Smart News For Smart Minds</span>
+        </div>
+        <div class="store-grid">
+            <div class="store-card">
+                <img src="https://files.selar.co/product-images/2026/products/sunday-a-kushina1/small-business-prompt-pac-selar.com-6af46f2c67a28.jpg" alt="Small Business Prompt Pack cover" loading="lazy">
+                <div class="sc-body">
+                    <span class="store-badge">Best for starters</span>
+                    <h3>Small Business Prompt Pack &ndash; From Zero to Your First 100 Customers</h3>
+                    <p class="sc-desc">Ready-made AI prompts and playbooks to find customers, write offers and market your small business without a big budget.</p>
+                    <div class="store-price"><span class="now">CFA 1,256</span></div>
+                    <a class="buy-btn" href="https://selar.com/6j91g4024d" target="_blank" rel="noopener">Buy Now &ndash; Instant Download</a>
+                </div>
+            </div>
+            <div class="store-card">
+                <img src="https://files.selar.co/product-images/2026/products/sunday-a-kushina1/tiktok-viral-prompt-pack--selar.com-6af350cf6183b.jpg" alt="TikTok Viral Prompt Pack cover" loading="lazy">
+                <div class="sc-body">
+                    <span class="store-badge">Hot deal &ndash; 50% off</span>
+                    <h3>TikTok Viral Prompt Pack &ndash; From Zero to Your First 10,000 Followers</h3>
+                    <p class="sc-desc">Copy-paste prompts for hooks, captions and video ideas engineered for the TikTok algorithm &ndash; built for Nigerian creators.</p>
+                    <div class="store-price"><span class="now">CFA 1,256</span><span class="was">CFA 2,511</span></div>
+                    <a class="buy-btn" href="https://selar.com/u31n0o040z" target="_blank" rel="noopener">Buy Now &ndash; Instant Download</a>
+                </div>
+            </div>
+            <div class="store-card">
+                <img src="https://files.selar.co/product-images/2026/products/sunday-a-kushina1/youtube-starter-prompt-pa-selar.com-6af34c27b9d3d.jpg" alt="YouTube Starter Prompt Pack cover" loading="lazy">
+                <div class="sc-body">
+                    <span class="store-badge">Hot deal &ndash; 50% off</span>
+                    <h3>YouTube Starter Prompt Pack &ndash; From Zero to Your First 1,000 Subscribers</h3>
+                    <p class="sc-desc">Titles, thumbnails, scripts and channel-growth prompts to launch a channel and reach your first 1,000 subscribers faster.</p>
+                    <div class="store-price"><span class="now">CFA 1,256</span><span class="was">CFA 2,511</span></div>
+                    <a class="buy-btn" href="https://selar.com/99z92k6m7n" target="_blank" rel="noopener">Buy Now &ndash; Instant Download</a>
+                </div>
+            </div>
+        </div>
+        <div class="store-note">
+            <strong>Secure checkout via Selar.</strong> Pay with card, bank transfer or USSD &ndash; prices convert automatically to your local currency (naira, cedi, CFA and more) at checkout. Your download link arrives instantly after payment. For support with any purchase, contact <a href="mailto:${SITE.email}">${SITE.email}</a>.
+        </div>
+    </main>
+    ${footer()}
+    ${backToTopBtn()}
+    <script src="js/main.js"></script>
+</body></html>`;
+
+  fs.writeFileSync(path.join(OUT, 'store.html'), store);
   fs.writeFileSync(path.join(OUT, 'about.html'), about);
   fs.writeFileSync(path.join(OUT, 'contact.html'), contact);
   fs.writeFileSync(path.join(OUT, 'privacy.html'), privacy);
   fs.writeFileSync(path.join(OUT, 'terms.html'), terms);
   fs.writeFileSync(path.join(OUT, 'editorial-policy.html'), editorial);
   fs.writeFileSync(path.join(OUT, '404.html'), notFound);
-  console.log('  Built: about.html, contact.html, privacy.html, terms.html, editorial-policy.html, 404.html');
+  console.log('  Built: store.html, about.html, contact.html, privacy.html, terms.html, editorial-policy.html, 404.html');
 }
 
 function copyAssets() {
