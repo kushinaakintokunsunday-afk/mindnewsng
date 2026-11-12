@@ -223,6 +223,9 @@ def main():
         aid = a.get("id") or a.get("slug")
         if not aid or aid in state["posted"]:
             continue
+        # skip articles flagged manual (posted manually after user approval)
+        if a.get("manual"):
+            continue
         # freshness: skip articles older than MAX_AGE_H hours
         try:
             adate = datetime.fromisoformat(a.get("date", "").replace("Z", "+00:00"))
