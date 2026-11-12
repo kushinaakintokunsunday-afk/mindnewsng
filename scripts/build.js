@@ -1426,7 +1426,7 @@ function buildStaticPages() {
         </div>
         <div class="store-grid">
             <div class="store-card">
-                <img src="https://files.selar.co/product-images/2026/products/sunday-a-kushina1/small-business-prompt-pac-selar.com-6af46f2c67a28.jpg" alt="Small Business Prompt Pack cover" loading="lazy">
+                <img src="images/cover_smallbusiness.jpg" alt="Small Business Prompt Pack cover" loading="lazy">
                 <div class="sc-body">
                     <span class="store-badge">Best for starters</span>
                     <h3>Small Business Prompt Pack &ndash; From Zero to Your First 100 Customers</h3>
@@ -1436,7 +1436,7 @@ function buildStaticPages() {
                 </div>
             </div>
             <div class="store-card">
-                <img src="https://files.selar.co/product-images/2026/products/sunday-a-kushina1/tiktok-viral-prompt-pack--selar.com-6af350cf6183b.jpg" alt="TikTok Viral Prompt Pack cover" loading="lazy">
+                <img src="images/cover_tiktok.jpg" alt="TikTok Viral Prompt Pack cover" loading="lazy">
                 <div class="sc-body">
                     <span class="store-badge">Hot deal &ndash; 50% off</span>
                     <h3>TikTok Viral Prompt Pack &ndash; From Zero to Your First 10,000 Followers</h3>
@@ -1446,7 +1446,7 @@ function buildStaticPages() {
                 </div>
             </div>
             <div class="store-card">
-                <img src="https://files.selar.co/product-images/2026/products/sunday-a-kushina1/youtube-starter-prompt-pa-selar.com-6af34c27b9d3d.jpg" alt="YouTube Starter Prompt Pack cover" loading="lazy">
+                <img src="images/cover_youtube.jpg" alt="YouTube Starter Prompt Pack cover" loading="lazy">
                 <div class="sc-body">
                     <span class="store-badge">Hot deal &ndash; 50% off</span>
                     <h3>YouTube Starter Prompt Pack &ndash; From Zero to Your First 1,000 Subscribers</h3>
