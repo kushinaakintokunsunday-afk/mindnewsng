@@ -1603,6 +1603,13 @@ function main() {
   // SEO
   buildSeoPages(articles);
 
+  // Static landing pages (ebooks)
+  const landingFiles = ['tiktok-viral-prompt-pack.html'];
+  for (const lf of landingFiles) {
+    const src = path.join(ROOT, lf);
+    if (fs.existsSync(src)) { fs.copyFileSync(src, path.join(OUT, lf)); console.log(`  Copied: ${lf}`); }
+  }
+
   console.log(`\nDone! Site generated in: ${path.relative(process.cwd(), OUT)}`);
   console.log('Run: npm run dev   to preview locally');
 }
