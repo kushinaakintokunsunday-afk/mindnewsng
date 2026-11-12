@@ -182,13 +182,14 @@ def fallback_card(title):
 def build_message(a):
     title = a.get("title", "").strip()
     desc = (a.get("description") or "").strip()
-    if len(desc) > 420:
-        cut = desc[:420].rsplit(" ", 1)[0]
+    url = a.get("url", "")
+    if len(desc) > 380:
+        cut = desc[:380].rsplit(" ", 1)[0]
         desc = cut.rsplit(".", 1)[0] + "." if "." in cut else cut + "..."
     cat = a.get("category", "")
     tags = TAGS_BY_CAT.get(cat, "#NaijaNews #BreakingNews")
     msg = (f"\U0001f6a8 {title}\n\n{desc}\n\n"
-           "\U0001F447 Full details in the first comment\n" + CTA +
+           f"\U0001F517 Full story: {url}\n" + CTA +
            f"\n{tags} #Mindnewsng")
     return msg
 
@@ -275,8 +276,11 @@ def main():
                 photo = json.loads(r.read().decode("utf-8"))
             post_id = photo.get("post_id") or photo.get("id")
             if url:
-                graph(f"{post_id}/comments",
-                      data={"message": f"More details here: {url}"})
+                try:
+                    graph(f"{post_id}/comments",
+                          data={"message": f"More details here: {url}"})
+                except Exception:
+                    pass  # link already in post text
             state["posted"][aid] = [now.isoformat()]
             state["days"][today] = posted_today + n + 1
             state["last_ts"] = now.isoformat()
