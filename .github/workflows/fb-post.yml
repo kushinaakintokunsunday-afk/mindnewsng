@@ -1,0 +1,39 @@
+name: FB Auto Post
+
+on:
+  schedule:
+    # Runs every ~45 min through the WAT day (UTC+1). Script caps at 20 posts/day.
+    - cron: "3/45 5-21 * * *"
+  workflow_dispatch:
+    inputs:
+      max_posts:
+        description: "How many posts this run"
+        default: "1"
+      dry_run:
+        description: "Dry run (no posting)? true/false"
+        default: "false"
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install pillow
+
+      - name: Post to Facebook
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python scripts/post_fb.py \
+            --max-posts "${{ github.event.inputs.max_posts || '1' }}" \
+            $( [ "${{ github.event.inputs.dry_run || 'false' }}" = "true" ] && echo "--dry-run" )
