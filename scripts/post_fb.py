@@ -180,17 +180,18 @@ def fallback_card(title):
 
 
 def build_message(a):
+    # Legit.ng-style hook: short teaser + link. Never post the full story on FB -
+    # the goal is clicks to the site.
     title = a.get("title", "").strip()
-    desc = (a.get("description") or "").strip()
+    if title.endswith(" - Check Below For Full Details"):
+        title = title[: -len(" - Check Below For Full Details")]
     url = a.get("url", "")
-    if len(desc) > 380:
-        cut = desc[:380].rsplit(" ", 1)[0]
-        desc = cut.rsplit(".", 1)[0] + "." if "." in cut else cut + "..."
     cat = a.get("category", "")
     tags = TAGS_BY_CAT.get(cat, "#NaijaNews #BreakingNews")
-    msg = (f"\U0001f6a8 {title}\n\n{desc}\n\n"
-           f"\U0001F517 Full story: {url}\n" + CTA +
-           f"\n{tags} #Mindnewsng")
+    msg = (f"\U0001f6a8 {title}\n\n"
+           "\U0001F449 Full story here: " + url + "\n"
+           "\u2764\uFE0f LIKE | \U0001F4AC COMMENT | \U0001F501 SHARE\n"
+           "\u2795 FOLLOW for daily updates\n" + tags + " #Mindnewsng")
     return msg
 
 
