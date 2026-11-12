@@ -390,6 +390,12 @@ function header(activePage = 'Home', articles = []) {
             <span class="ticker-live-dot"></span>
             ${tickerItems}
         </div></div>
+    </div>
+    <div class="ebook-strip">
+        <div class="container ebook-strip-inner">
+            <span class="ebook-strip-text">&#128214; <strong>New:</strong> Small Business Prompt Pack &mdash; ready-made AI prompts to get your first 100 customers.</span>
+            <a href="../store.html" class="ebook-strip-cta">Get it on the Store &rarr;</a>
+        </div>
     </div>`;
 }
 
@@ -645,6 +651,12 @@ function buildIndex(articles) {
             ${latest.slice(0, 3).map(a => `<a href="articles/${a.slug}.html">${esc(a.title)}</a>`).join('<span>&#9679;</span>\n')}
         </div></div>
     </div>
+    <div class="ebook-strip">
+        <div class="container ebook-strip-inner">
+            <span class="ebook-strip-text">&#128214; <strong>New:</strong> Small Business Prompt Pack &mdash; ready-made AI prompts to get your first 100 customers.</span>
+            <a href="store.html" class="ebook-strip-cta">Get it on the Store &rarr;</a>
+        </div>
+    </div>
 
     <main id="main-content" class="container">
         ${adBlock('728x90')}
@@ -797,6 +809,41 @@ function buildIndex(articles) {
         <section class="featured-collection">
             ${jobsArticles.map(a => featuredCard(a)).join('\n')}
         </section>` : '')}
+
+        <!-- FEATURED EBOOKS -->
+        <div class="section-headline">
+            <h2 class="section-title">Featured Ebooks</h2>
+            <a href="store.html" class="section-link">Visit Store &rarr;</a>
+        </div>
+        <section class="featured-ebooks">
+            <a href="store.html" class="fe-card">
+                <img src="images/cover_smallbusiness.jpg" alt="Small Business Prompt Pack" loading="lazy">
+                <div class="fe-body">
+                    <span class="store-badge">Best for starters</span>
+                    <h3>Small Business Prompt Pack</h3>
+                    <p>Ready-made AI prompts to find customers and market your small business.</p>
+                    <span class="fe-cta">Get it &rarr;</span>
+                </div>
+            </a>
+            <a href="store.html" class="fe-card">
+                <img src="images/cover_tiktok.jpg" alt="TikTok Viral Prompt Pack" loading="lazy">
+                <div class="fe-body">
+                    <span class="store-badge">50% off</span>
+                    <h3>TikTok Viral Prompt Pack</h3>
+                    <p>Hooks, captions and video ideas engineered for the TikTok algorithm.</p>
+                    <span class="fe-cta">Get it &rarr;</span>
+                </div>
+            </a>
+            <a href="store.html" class="fe-card">
+                <img src="images/cover_youtube.jpg" alt="YouTube Starter Prompt Pack" loading="lazy">
+                <div class="fe-body">
+                    <span class="store-badge">50% off</span>
+                    <h3>YouTube Starter Prompt Pack</h3>
+                    <p>Titles, thumbnails and scripts to reach your first 1,000 subscribers.</p>
+                    <span class="fe-cta">Get it &rarr;</span>
+                </div>
+            </a>
+        </section>
 
         <!-- EDITORS' PICKS -->
         <div class="section-headline">
@@ -992,6 +1039,16 @@ function buildArticlePage(article, allArticles) {
                 <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}" target="_blank" rel="noopener" class="share-btn share-x">X</a>
                 <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(article.url)}" target="_blank" rel="noopener" class="share-btn share-fb">FB</a>
                 <a href="https://wa.me/?text=${encodeURIComponent(article.title + ' ' + article.url)}" target="_blank" rel="noopener" class="share-btn share-wa">WA</a>
+            </div>
+
+            <div class="ebook-promo">
+                <img src="../images/cover_smallbusiness.jpg" alt="Small Business Prompt Pack" loading="lazy">
+                <div class="ebook-promo-body">
+                    <span class="store-badge">Featured Ebook</span>
+                    <h3>Small Business Prompt Pack &mdash; From Zero to Your First 100 Customers</h3>
+                    <p>Ready-made AI prompts and playbooks to find customers, write offers and market your small business &mdash; without a big budget.</p>
+                    <a href="../store.html" class="buy-btn ebook-promo-btn">Get it on the Store &rarr;</a>
+                </div>
             </div>
 
             ${adBlock('300x250')}
