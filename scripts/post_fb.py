@@ -26,6 +26,7 @@ TOKEN = os.environ.get("FB_PAGE_TOKEN", "")
 API = "https://graph.facebook.com/v23.0"
 MAX_PER_DAY = 20
 MIN_SPACING_MIN = 40
+MAX_AGE_H = 72  # never post articles older than this many hours
 CTA = ("\n\n\u2764\ufe0f LIKE | \U0001F4AC COMMENT your thoughts | "
        "\U0001F501 SHARE to help someone\n"
        "\u2795 FOLLOW MINDNEWSNG for daily updates \U0001F4C8")
@@ -221,6 +222,15 @@ def main():
         aid = a.get("id") or a.get("slug")
         if not aid or aid in state["posted"]:
             continue
+        # freshness: skip articles older than MAX_AGE_H hours
+        try:
+            adate = datetime.fromisoformat(a.get("date", "").replace("Z", "+00:00"))
+            age_h = (now - adate).total_seconds() / 3600
+            if age_h > MAX_AGE_H:
+                print(f"skip (too old, {age_h:.0f}h): {aid}")
+                continue
+        except Exception:
+            pass
         title = a.get("title", "")
         if normalize(title)[:60] and any(m.startswith(normalize(title)[:60]) for m in seen):
             state["posted"][aid] = [now.isoformat()]
