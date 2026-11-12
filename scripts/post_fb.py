@@ -26,9 +26,9 @@ TOKEN = os.environ.get("FB_PAGE_TOKEN", "")
 API = "https://graph.facebook.com/v23.0"
 MAX_PER_DAY = 20
 MIN_SPACING_MIN = 40
-CTA = ("\n\n\u2764\ufe0f LIKE | \ud83d\udcac COMMENT your thoughts | "
-       "\ud83d\udd01 SHARE to help someone\n"
-       "\u2795 FOLLOW MINDNEWSNG for daily updates \ud83d\udcc8")
+CTA = ("\n\n\u2764\ufe0f LIKE | \U0001F4AC COMMENT your thoughts | "
+       "\U0001F501 SHARE to help someone\n"
+       "\u2795 FOLLOW MINDNEWSNG for daily updates \U0001F4C8")
 TAGS_BY_CAT = {
     "Jobs": "#JobsAbroad #Opportunity #Japa",
     "Money": "#Money #Finance #NaijaMoney",
@@ -105,6 +105,13 @@ def normalize(s):
 
 
 def load_image(url):
+    if os.name == "nt":
+        r = subprocess.run(["curl.exe", "-s", "-L", "--max-time", "90",
+                            "-A", "Mozilla/5.0", "--", url],
+                           capture_output=True)
+        if r.returncode == 0 and r.stdout and len(r.stdout) > 5000:
+            return r.stdout
+        raise RuntimeError("curl image load failed")
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(req, timeout=90) as r:
         return r.read()
@@ -180,7 +187,7 @@ def build_message(a):
     cat = a.get("category", "")
     tags = TAGS_BY_CAT.get(cat, "#NaijaNews #BreakingNews")
     msg = (f"\U0001f6a8 {title}\n\n{desc}\n\n"
-           "\ud83d\udc47 Full details in the first comment\n" + CTA +
+           "\U0001F447 Full details in the first comment\n" + CTA +
            f"\n{tags} #Mindnewsng")
     return msg
 
@@ -207,8 +214,6 @@ def main():
         print(f"quota reached: {posted_today} posts today"); return
 
     seen = recent_messages()
-    published = {p[:10] for p in (state["posted"].get(a.get("id", "")) or [""])
-                 for a in arts}  # noop, keep simple
     n = 0
     for a in arts:
         if n >= max_posts or posted_today + n >= MAX_PER_DAY:
