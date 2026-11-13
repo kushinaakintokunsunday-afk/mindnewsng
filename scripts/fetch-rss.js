@@ -1,398 +1,802 @@
-const fs = require('fs');
-const path = require('path');
-
-const DATA_DIR = path.join(__dirname, '..', 'data');
-const OUTPUT = path.join(DATA_DIR, 'articles.json');
-const SEED_FILE = path.join(DATA_DIR, 'seed.json');
-
-const RSS_FEEDS = [
-  // Nigerian sources
-  { source: 'BBC Africa',     category: 'World News',  url: 'http://feeds.bbci.co.uk/news/world/africa/rss.xml' },
-  { source: 'Channels TV',    category: 'News',        url: 'https://www.channelstv.com/feed/' },
-  { source: 'Premium Times',  category: 'News',        url: 'https://www.premiumtimesng.com/feed/' },
-  // Google News search feeds: 'jobs abroad / visa / relocation' stories MSN often
-  // republishes (Legit.ng, TheCable, Punch, Guardian, Tribune, PM News...).
-  // Legit.ng's own RSS is blocked by a captcha wall, so we use Google News instead.
-  { source: 'Google News', category: 'Jobs & Education', url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('nigeria (jobs abroad OR work visa OR relocation) when:7d') + '&hl=en-NG&gl=NG&ceid=NG:en' },
-  { source: 'Google News', category: 'News',             url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('nigeria breaking news') + '&hl=en-NG&gl=NG&ceid=NG:en' },
-  // Legit.ng mirror via Google News (their own RSS returns 403); English items only,
-  // filtered by <source url> host in parseRSS below.
-  { source: 'Legit.ng',       category: 'News',        url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('site:legit.ng when:2d') + '&hl=en-NG&gl=NG&ceid=NG:en' },
-  { source: 'Vanguard',       category: 'News',        url: 'https://www.vanguardngr.com/feed/' },
-  { source: 'The Guardian',   category: 'News',        url: 'https://guardian.ng/feed/' },
-  { source: 'Punch',          category: 'News',        url: 'https://punchng.com/feed/' },
-  // International sources relevant to Nigerians
-  { source: 'France24 Africa', category: 'World News',  url: 'https://www.france24.com/en/africa/rss' },
-  { source: 'Al Jazeera',     category: 'World News',  url: 'https://www.aljazeera.com/xml/rss/all.xml' },
-];
-
-const CATEGORY_KEYWORDS = {
-  Politics:       /govern|presid|minist|senat|house.*represent|gubernat|election|party|apc|pdp|labour.*party|nass|inec|assembl/i,
-  Entertainment:  /movie|nollywood|music|film|actor|actress|singer|entertai|concert|blogger|afrobeats|grammy|amvca|bbnaija/i,
-  Sports:         /football|soccer|nff|super.*eagles|npfl|league|transfer|goal|coach|match|champion|olympi|athlet|basketball/i,
-  Money:          /econom|cbn|banking|stock|trade|invest|gdp|inflat|naira|dollar|dangot|ftse|ngx|nse|oil.*price|exchange.*rate|forex|cost.*of|price|salary|loan|wage|budget/i,
-  'Jobs & Education': /scholarship|job|vacanc|universit|school.*fee|admission|visa|train|certif|examin|recruit|employ|degree|course|student|employment|japa|relocat|immigra|emigrat|work.*abroad|freelanc|remote.*work/i,
-  Health:         /health|hospit|doctor|vaccin|disease|malaria|covid|treatment|pharm|minist.*health|who\b/i,
-  Lifestyle:      /fashion|food|travel|relationship|wedding|marriage|style|beauty|home/i,
-  Technology:     /artifici.*intellig|blockchain|cryptocurr|bitcoin|fintech|start.?up|software|cyber|data.*breach|gadget|smartphone|iphone|tech/i,
-  'World News':   /africa|us |america|uk |britain|canada|europe|china|russia|united.*states|united.*kingdom|international|global|xenophob|deporta|protest.*nigeri|attack.*nigeri|foreign/i,
-};
-
-function categorize(text) {
-  for (const [cat, re] of Object.entries(CATEGORY_KEYWORDS)) {
-    if (re.test(text)) return cat;
-  }
-  return 'News';
-}
-
-// Reject URLs that are not real images (e.g. youtube embed pages)
-function isImageUrl(url) {
-  if (!url) return false;
-  if (/youtube\.com|youtu\.be|youtube-nocookie\.com/i.test(url)) return false;
-  return /\.(jpe?g|png|webp|gif|avif|svg|bmp)(\?|#|$)/i.test(url) === false
-    ? /^https?:\/\/.+/i.test(url) && !/\.(php|asp|x[a]?ml|json|html)(\?|#|$)/i.test(url)
-    : true;
-}
-
-// RSS/XML escapes ampersands; browsers need the real & in the src.
-function unescapeUrl(url) {
-  if (!url) return url;
-  return url.replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
-}
-
-function extractImage(xml) {
-  // Try media:content, media:thumbnail, enclosure, og:image in description, then any <img> inside the item
-  const candidates = [
-    /<media:content[^>]*url="([^"]+)"/i,
-    /<media:thumbnail[^>]*url="([^"]+)"/i,
-    /<enclosure[^>]*url="([^"]+)"/i,
-    /<img[^>]*src="([^"]+)"/i,
-    /<img[^>]*data-src="([^"]+)"/i,
-  ];
-  for (const re of candidates) {
-    const m = xml.match(re);
-    if (m && isImageUrl(m[1])) return unescapeUrl(m[1]);
-  }
-  // Fallback: search the content:encoded HTML body for the first <img> or data-src lazyload
-  const contentEnc = xml.match(/<content:encoded[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/content:encoded>/i);
-  if (contentEnc) {
-    let imgMatch = contentEnc[1].match(/<img[^>]*src="([^"]+)"/i)
-      || contentEnc[1].match(/<img[^>]*data-src="([^"]+)"/i);
-    if (imgMatch && isImageUrl(imgMatch[1])) return unescapeUrl(imgMatch[1]);
-  }
-  return null;
-}
-
-// Prefer full article body from <content:encoded>. Returns { body, isFull } where
-// isFull is true only when real article content (not just the summary) was available.
-function extractContent(xml) {
-  const contentEnc = xml.match(/<content:encoded[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/content:encoded>/i);
-  const desc = xml.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
-  const raw = contentEnc ? contentEnc[1] : (desc ? desc[1] : '');
-  if (!raw) return { body: '', isFull: false };
-  const clean = raw
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/&nbsp;/gi, ' ')
-    .trim();
-  const textLen = clean.replace(/<[^>]+>/g, '').trim().length;
-  // content:encoded is the real article body; plain description is only a summary
-  const isFull = Boolean(contentEnc) && textLen > 120;
-  return { body: clean, isFull };
-}
-
-function stripHtml(html) {
-  if (!html) return '';
-  return html
-    .replace(/<[^>]*>/g, '')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
+const fs = require('fs');
+
+const path = require('path');
+
+
+
+const DATA_DIR = path.join(__dirname, '..', 'data');
+
+const OUTPUT = path.join(DATA_DIR, 'articles.json');
+
+const SEED_FILE = path.join(DATA_DIR, 'seed.json');
+
+
+
+const RSS_FEEDS = [
+
+  // Nigerian sources
+
+  { source: 'BBC Africa',     category: 'World News',  url: 'http://feeds.bbci.co.uk/news/world/africa/rss.xml' },
+
+  { source: 'Channels TV',    category: 'News',        url: 'https://www.channelstv.com/feed/' },
+
+  { source: 'Premium Times',  category: 'News',        url: 'https://www.premiumtimesng.com/feed/' },
+
+  // Google News search feeds: 'jobs abroad / visa / relocation' stories MSN often
+
+  // republishes (Legit.ng, TheCable, Punch, Guardian, Tribune, PM News...).
+
+  // Legit.ng's own RSS is blocked by a captcha wall, so we use Google News instead.
+
+  { source: 'Google News', category: 'Jobs & Education', url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('nigeria (jobs abroad OR work visa OR relocation) when:7d') + '&hl=en-NG&gl=NG&ceid=NG:en' },
+
+  { source: 'Google News', category: 'News',             url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('nigeria breaking news') + '&hl=en-NG&gl=NG&ceid=NG:en' },
+
+  // Legit.ng mirror via Google News (their own RSS returns 403); English items only,
+
+  // filtered by <source url> host in parseRSS below.
+
+  { source: 'Legit.ng',       category: 'News',        url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('site:legit.ng when:2d') + '&hl=en-NG&gl=NG&ceid=NG:en' },
+
+  { source: 'Vanguard',       category: 'News',        url: 'https://www.vanguardngr.com/feed/' },
+
+  { source: 'The Guardian',   category: 'News',        url: 'https://guardian.ng/feed/' },
+
+  { source: 'Punch',          category: 'News',        url: 'https://punchng.com/feed/' },
+
+  // Owner-designated standing sources (scan every cycle)
+
+  { source: 'The Sun Nigeria', category: 'News',        url: 'https://thesun.ng/feed/' },
+
+  { source: 'Blueprint',       category: 'News',        url: 'https://blueprint.ng/feed/' },
+
+
+  // International sources relevant to Nigerians
+
+  { source: 'France24 Africa', category: 'World News',  url: 'https://www.france24.com/en/africa/rss' },
+
+  { source: 'Al Jazeera',     category: 'World News',  url: 'https://www.aljazeera.com/xml/rss/all.xml' },
+
+];
+
+
+
+const CATEGORY_KEYWORDS = {
+
+  Politics:       /govern|presid|minist|senat|house.*represent|gubernat|election|party|apc|pdp|labour.*party|nass|inec|assembl/i,
+
+  Entertainment:  /movie|nollywood|music|film|actor|actress|singer|entertai|concert|blogger|afrobeats|grammy|amvca|bbnaija/i,
+
+  Sports:         /football|soccer|nff|super.*eagles|npfl|league|transfer|goal|coach|match|champion|olympi|athlet|basketball/i,
+
+  Money:          /econom|cbn|banking|stock|trade|invest|gdp|inflat|naira|dollar|dangot|ftse|ngx|nse|oil.*price|exchange.*rate|forex|cost.*of|price|salary|loan|wage|budget/i,
+
+  'Jobs & Education': /scholarship|job|vacanc|universit|school.*fee|admission|visa|train|certif|examin|recruit|employ|degree|course|student|employment|japa|relocat|immigra|emigrat|work.*abroad|freelanc|remote.*work/i,
+
+  Health:         /health|hospit|doctor|vaccin|disease|malaria|covid|treatment|pharm|minist.*health|who\b/i,
+
+  Lifestyle:      /fashion|food|travel|relationship|wedding|marriage|style|beauty|home/i,
+
+  Technology:     /artifici.*intellig|blockchain|cryptocurr|bitcoin|fintech|start.?up|software|cyber|data.*breach|gadget|smartphone|iphone|tech/i,
+
+  'World News':   /africa|us |america|uk |britain|canada|europe|china|russia|united.*states|united.*kingdom|international|global|xenophob|deporta|protest.*nigeri|attack.*nigeri|foreign/i,
+
+};
+
+
+
+function categorize(text) {
+
+  for (const [cat, re] of Object.entries(CATEGORY_KEYWORDS)) {
+
+    if (re.test(text)) return cat;
+
+  }
+
+  return 'News';
+
+}
+
+
+
+// Reject URLs that are not real images (e.g. youtube embed pages)
+
+function isImageUrl(url) {
+
+  if (!url) return false;
+
+  if (/youtube\.com|youtu\.be|youtube-nocookie\.com/i.test(url)) return false;
+
+  return /\.(jpe?g|png|webp|gif|avif|svg|bmp)(\?|#|$)/i.test(url) === false
+
+    ? /^https?:\/\/.+/i.test(url) && !/\.(php|asp|x[a]?ml|json|html)(\?|#|$)/i.test(url)
+
+    : true;
+
+}
+
+
+
+// RSS/XML escapes ampersands; browsers need the real & in the src.
+
+function unescapeUrl(url) {
+
+  if (!url) return url;
+
+  return url.replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
+
+}
+
+
+
+function extractImage(xml) {
+
+  // Try media:content, media:thumbnail, enclosure, og:image in description, then any <img> inside the item
+
+  const candidates = [
+
+    /<media:content[^>]*url="([^"]+)"/i,
+
+    /<media:thumbnail[^>]*url="([^"]+)"/i,
+
+    /<enclosure[^>]*url="([^"]+)"/i,
+
+    /<img[^>]*src="([^"]+)"/i,
+
+    /<img[^>]*data-src="([^"]+)"/i,
+
+  ];
+
+  for (const re of candidates) {
+
+    const m = xml.match(re);
+
+    if (m && isImageUrl(m[1])) return unescapeUrl(m[1]);
+
+  }
+
+  // Fallback: search the content:encoded HTML body for the first <img> or data-src lazyload
+
+  const contentEnc = xml.match(/<content:encoded[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/content:encoded>/i);
+
+  if (contentEnc) {
+
+    let imgMatch = contentEnc[1].match(/<img[^>]*src="([^"]+)"/i)
+
+      || contentEnc[1].match(/<img[^>]*data-src="([^"]+)"/i);
+
+    if (imgMatch && isImageUrl(imgMatch[1])) return unescapeUrl(imgMatch[1]);
+
+  }
+
+  return null;
+
+}
+
+
+
+// Prefer full article body from <content:encoded>. Returns { body, isFull } where
+
+// isFull is true only when real article content (not just the summary) was available.
+
+function extractContent(xml) {
+
+  const contentEnc = xml.match(/<content:encoded[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/content:encoded>/i);
+
+  const desc = xml.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
+
+  const raw = contentEnc ? contentEnc[1] : (desc ? desc[1] : '');
+
+  if (!raw) return { body: '', isFull: false };
+
+  const clean = raw
+
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+
+    .replace(/&nbsp;/gi, ' ')
+
+    .trim();
+
+  const textLen = clean.replace(/<[^>]+>/g, '').trim().length;
+
+  // content:encoded is the real article body; plain description is only a summary
+
+  const isFull = Boolean(contentEnc) && textLen > 120;
+
+  return { body: clean, isFull };
+
+}
+
+
+
+function stripHtml(html) {
+
+  if (!html) return '';
+
+  return html
+
+    .replace(/<[^>]*>/g, '')
+
+    .replace(/&amp;/g, '&')
+
+    .replace(/&lt;/g, '<')
+
+    .replace(/&gt;/g, '>')
+
+    .replace(/&quot;/g, '"')
+
     .replace(/&#039;|&apos;/g, "'")
-    .replace(/&#(\d+);/g, (m, n) => String.fromCodePoint(n))
-    .replace(/&nbsp;/g, ' ')
-    .trim();
-}
-
-function escapeHtml(str) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-function parseDate(dateStr) {
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
-}
-
-// Normalize messy feed bylines into clean journalist names.
-function cleanAuthor(name) {
-  if (!name) return 'MindnewsNG';
-  let n = stripHtml(name).trim();
-  // email address: keep the local part
-  const emailMatch = n.match(/^([^@\s]+)@/);
-  if (emailMatch) n = emailMatch[1];
-  // strip trailing domains like (vanguardngr.com) / vanguardngr.com
-  n = n.replace(/\([^)]*[.][^)]*\)/g, '').replace(/\s*[a-z0-9-]+\.(com|net|org|ng|co|io)[a-z0-9./]*\s*$/gi, '');
-  // collapse "The FRANCE 24 Observers" style names
-  n = n.replace(/\bThe\s+/i, '').replace(/\s+/g, ' ').trim();
-  if (!n || /^[^a-z]/i.test(n)) n = 'MindnewsNG';
-  return n;
-}
-
-function slugify(text) {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80);
-}
-
-function parseRSS(xml, feedMeta) {
-  const items = [];
-  const itemRegex = /<item[\s>]([\s\S]*?)<\/item>/gi;
-  let match;
-
-  while ((match = itemRegex.exec(xml)) !== null) {
-    const block = match[1];
-
-    // For Google-News-mirror feeds: skip items syndicated as Hausa.
-    const srcUrl = (block.match(/<source[^>]*url="([^"]+)"/i) || [])[1] || '';
-    if (feedMeta.source === 'Legit.ng' && srcUrl && srcUrl.includes('hausa.legit.ng')) continue;
-
-
-    const title = (block.match(/<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i) || [])[1] || '';
-    const link = (block.match(/<link[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i) || [])[1] || (block.match(/<link[^>]*\/>/i) || [])[0] || '';
-    const description = (block.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i) || [])[1] || '';
-    const pubDate = (block.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i) || [])[1] || '';
-    const author = (block.match(/<dc:creator[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/dc:creator>/i) || [])[1] || feedMeta.source;
-    const category = (block.match(/<category[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/category>/i) || [])[1] || '';
-    const image = extractImage(block) || extractImage(description);
-
-    // Google News titles end with ' - PublicationName'; strip it using the item's <source> tag.
-    const srcName = stripHtml((block.match(/<source[^>]*>([\s\S]*?)<\/source>/i) || [])[1] || '');
-    let strippedTitle = stripHtml(title);
-    if (srcName) {
-      const esc = srcName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      strippedTitle = strippedTitle.replace(new RegExp('\\s*[-\u2013]\\s*' + esc + '\\s*$', 'i'), '');
-    }
-    const cleanTitle = strippedTitle;
-    const { body: fullContent, isFull } = extractContent(block);
-    const cleanDesc = isFull
-      ? stripHtml(fullContent.split(/\s+<\/p>/).slice(0, 3).join('')).slice(0, 300)
-      : stripHtml(description).slice(0, 300);
-    const combinedText = `${cleanTitle} ${category}`;
-    const autoCategory = categorize(combinedText);
-
-    if (cleanTitle && link.trim()) {
-      items.push({
-        id: slugify(cleanTitle),
-        title: cleanTitle,
-        description: cleanDesc,
-        content: isFull ? fullContent : '',
-        url: link.trim(),
-        date: parseDate(pubDate),
-        category: autoCategory,
-        subcategory: stripHtml(category),
-        author: cleanAuthor(author),
-        source: feedMeta.source,
-        image: image || null,
-        slug: slugify(cleanTitle),
-      });
-    }
-  }
-  return items;
-}
-
-async function fetchFeed(feed) {
-  try {
-    const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(feed.url, {
-      signal: controller.signal,
-      redirect: 'manual',
-      headers: { 'User-Agent': UA },
-    });
-    clearTimeout(timeout);
-    if (!res.ok && (res.status < 300 || res.status >= 400)) throw new Error(`HTTP ${res.status}`);
-
-    let items = parseRSS(await res.text(), feed);
-    // Some feeds (e.g. Punch) ship the full body inside the 3xx response; others
-    // (BBC, Premium Times) return an empty 3xx and must be followed manually.
-    if (items.length === 0 && res.status >= 300 && res.status < 400) {
-      const location = res.headers.get('location');
-      if (location) {
-        const ctrl2 = new AbortController();
-        const timeout2 = setTimeout(() => ctrl2.abort(), 15000);
-        const res2 = await fetch(new URL(location, feed.url), {
-          signal: ctrl2.signal,
-          headers: { 'User-Agent': UA },
-        });
-        clearTimeout(timeout2);
-        if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
-        items = parseRSS(await res2.text(), feed);
-      }
-    }
-    console.log(`  [OK] ${feed.source}: ${items.length} articles`);
-    return items;
-  } catch (err) {
-    console.warn(`  [WARN] ${feed.source}: ${err.message}`);
-    return [];
-  }
-}
-
-function deduplicate(articles) {
-  const seen = new Set();
-  return articles.filter(a => {
-    const key = a.title.toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function sortByDate(articles) {
-  return articles.sort((a, b) => new Date(b.date) - new Date(a.date));
-}
-
-// Expand seed articles: build a proper HTML body and pick a themed placeholder image
-function expandSeeds(seeds) {
-  if (!Array.isArray(seeds)) return [];
-  const now = new Date();
-  return seeds.map((s, i) => {
-    const title = s.title || '';
-    const desc = s.description || '';
-    let image = s.image || null;
-    // Seeds carry no real photo; use a themed branded placeholder
-    if (!image) {
-      image = `https://placehold.co/800x450/0b0b0b/ffffff?text=${encodeURIComponent('Mindnewsng Guide')}`;
-    }
-    const paragraphs = desc
-      .match(/[^.!?]+[.!?]+/g)
-      .filter(p => p.trim().length > 20)
-      .map(p => `<p>${escapeHtml(p.trim())}</p>`)
-      .join('\n');
-    const content = s.content || `
-<h2>Overview</h2>
-${paragraphs || `<p>${escapeHtml(desc)}</p>`}
-<h2>Why it matters</h2>
-<p>This guide from Mindnewsng gives Nigerian readers a clear, practical breakdown of an important topic affecting everyday lives — from relocation and scholarship opportunities to finance and lifestyle decisions.</p>
-<p>For the most accurate and up-to-date details, always check the official source cited in this article, and speak to a verified and licensed professional before making any long-term commitment.</p>
-<p><em>Disclaimer: This article is for general information only and does not constitute legal, financial, or professional advice.</em></p>`;
-    return {
-      id: s.id || slugify(title),
-      title,
-      description: desc,
-      content,
-      url: s.url || '#',
-      date: s.date || new Date(new Date(now).setHours(now.getHours() - i)).toISOString(),
-      category: s.category || 'Guides',
-      subcategory: s.subcategory || '',
-      author: s.author || 'MindnewsNG',
-      source: s.source || 'MindnewsNG',
-      image,
-      slug: s.slug || slugify(title),
-    };
-  });
-}
-
-async function main() {
-  console.log('MindnewsNG RSS Fetcher');
-  console.log('='.repeat(40));
-
-  let allArticles = [];
-
-  console.log('\nFetching feeds...');
-  const results = await Promise.all(RSS_FEEDS.map(fetchFeed));
-  for (const items of results) {
-    allArticles.push(...items);
-  }
-
-  // Load seed articles as fallback/supplement
-  let seedArticles = [];
-  if (fs.existsSync(SEED_FILE)) {
-    try {
-      seedArticles = expandSeeds(JSON.parse(fs.readFileSync(SEED_FILE, 'utf-8')));
-      console.log(`\nLoaded ${seedArticles.length} seed articles`);
-    } catch (e) {
-      console.warn(`\nFailed to read seed.json: ${e.message}`);
-    }
-  }
-
-  // NEVER remove any article: load the entire existing articles.json and
-  // merge new RSS/seed items into it, so every story ever published stays live.
-  let existingPosts = [];
-  if (fs.existsSync(OUTPUT)) {
-    try {
-      const existing = JSON.parse(fs.readFileSync(OUTPUT, 'utf-8'));
-      existingPosts = (Array.isArray(existing) ? existing : []).filter(Boolean);
-      if (existingPosts.length) console.log(`\nPreserving all ${existingPosts.length} existing article(s)`);
-    } catch (e) {
-      console.warn(`
-Failed to read existing articles.json: ${e.message}`);
-    }
-  }
-
-  // Merge: everything existing first (never dropped), then new RSS, then seed fills gaps
-  const merged = [...existingPosts, ...allArticles, ...seedArticles];
-  const deduped = deduplicate(merged);
-  const sorted = sortByDate(deduped);
-
-  const final = sorted;
-
-  // Pinpoint dead/404 image URLs so we don't ship broken images
-  await prunefDeadImages(final);
-
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(OUTPUT, JSON.stringify(final, null, 2));
-  console.log(`\nWrote ${final.length} articles to ${path.relative(process.cwd(), OUTPUT)}`);
-}
-
-// Cheap HEAD probe: feeds (esp. Punch/WordPress) sometimes publish image URLs
-// that their CDN no longer serves. Without this we'd render broken <img> tags.
-async function prunefDeadImages(articles) {
-  // Never prune manual/original posts, and skip trusted domains that often block bot checks.
-  const trusted = /vanguardngr\.com|punchng\.com|guardian\.ng|channelstv\.com|premiumtimesng\.com|bbc\.co\.uk|bbci\.co\.uk|aljazeera\.com|france24\.com|unsplash\.com|wikimedia\.org|wp\.com|cloudfront\.net/i;
-  const candidates = articles.filter(a => a && !(a.manual === true || a.source === 'Mindnewsng') && a.image && /^https?:/i.test(a.image) && !trusted.test(a.image));
-  if (candidates.length === 0) return;
-  console.log(`Verifying ${candidates.length} image URLs...`);
-
-  const dead = [];
-  const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
-  async function checkUrl(url) {
-    try {
-      const get = await fetch(url, {
-        method: 'GET',
-        redirect: 'follow',
-        signal: AbortSignal.timeout(10000),
-        headers: { 'User-Agent': UA, 'Referer': 'https://mindnewsng.com/', 'Accept': 'image/*,*/*;q=0.8' }
-      }).catch(() => null);
-      if (!get) return true; // network/timeout: keep (benefit of doubt)
-      if (get.status === 404 || get.status === 410) return false; // definitively gone
-      if (get.status >= 200 && get.status < 400) return true;
-      return true; // 403/401/429/5xx from bot checks: keep, browser/onerror will handle
-    } catch { return true; }
-  }
-
-  let index = 0;
-  for (const a of candidates) {
-    const ok = await checkUrl(a.image);
-    if (!ok) { dead.push(a.image); a.image = null; }
-    index++;
-    if (index % 20 === 0 || index === candidates.length) console.log(`  ${index}/${candidates.length}`);
-  }
-  if (dead.length) {
-    console.log(`  Dropped ${dead.length} dead image URL(s):`);
-    dead.slice(0, 5).forEach(u => console.log('    -', u.slice(0, 100)));
-  }
-}
-
-main().catch(err => {
-  console.error('Fatal error:', err.message);
-  process.exit(1);
-});
+    .replace(/&#(\d+);/g, (m, n) => String.fromCodePoint(n))
+
+    .replace(/&nbsp;/g, ' ')
+
+    .trim();
+
+}
+
+
+
+function escapeHtml(str) {
+
+  return str
+
+    .replace(/&/g, '&amp;')
+
+    .replace(/</g, '&lt;')
+
+    .replace(/>/g, '&gt;')
+
+    .replace(/"/g, '&quot;')
+
+    .replace(/'/g, '&#039;');
+
+}
+
+
+
+function parseDate(dateStr) {
+
+  const d = new Date(dateStr);
+
+  return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+
+}
+
+
+
+// Normalize messy feed bylines into clean journalist names.
+
+function cleanAuthor(name) {
+
+  if (!name) return 'MindnewsNG';
+
+  let n = stripHtml(name).trim();
+
+  // email address: keep the local part
+
+  const emailMatch = n.match(/^([^@\s]+)@/);
+
+  if (emailMatch) n = emailMatch[1];
+
+  // strip trailing domains like (vanguardngr.com) / vanguardngr.com
+
+  n = n.replace(/\([^)]*[.][^)]*\)/g, '').replace(/\s*[a-z0-9-]+\.(com|net|org|ng|co|io)[a-z0-9./]*\s*$/gi, '');
+
+  // collapse "The FRANCE 24 Observers" style names
+
+  n = n.replace(/\bThe\s+/i, '').replace(/\s+/g, ' ').trim();
+
+  if (!n || /^[^a-z]/i.test(n)) n = 'MindnewsNG';
+
+  return n;
+
+}
+
+
+
+function slugify(text) {
+
+  return text
+
+    .toLowerCase()
+
+    .replace(/[^a-z0-9]+/g, '-')
+
+    .replace(/^-+|-+$/g, '')
+
+    .slice(0, 80);
+
+}
+
+
+
+function parseRSS(xml, feedMeta) {
+
+  const items = [];
+
+  const itemRegex = /<item[\s>]([\s\S]*?)<\/item>/gi;
+
+  let match;
+
+
+
+  while ((match = itemRegex.exec(xml)) !== null) {
+
+    const block = match[1];
+
+
+
+    // For Google-News-mirror feeds: skip items syndicated as Hausa.
+
+    const srcUrl = (block.match(/<source[^>]*url="([^"]+)"/i) || [])[1] || '';
+
+    if (feedMeta.source === 'Legit.ng' && srcUrl && srcUrl.includes('hausa.legit.ng')) continue;
+
+
+
+
+
+    const title = (block.match(/<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i) || [])[1] || '';
+
+    const link = (block.match(/<link[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i) || [])[1] || (block.match(/<link[^>]*\/>/i) || [])[0] || '';
+
+    const description = (block.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i) || [])[1] || '';
+
+    const pubDate = (block.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i) || [])[1] || '';
+
+    const author = (block.match(/<dc:creator[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/dc:creator>/i) || [])[1] || feedMeta.source;
+
+    const category = (block.match(/<category[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/category>/i) || [])[1] || '';
+
+    const image = extractImage(block) || extractImage(description);
+
+
+
+    // Google News titles end with ' - PublicationName'; strip it using the item's <source> tag.
+
+    const srcName = stripHtml((block.match(/<source[^>]*>([\s\S]*?)<\/source>/i) || [])[1] || '');
+
+    let strippedTitle = stripHtml(title);
+
+    if (srcName) {
+
+      const esc = srcName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+      strippedTitle = strippedTitle.replace(new RegExp('\\s*[-\u2013]\\s*' + esc + '\\s*$', 'i'), '');
+
+    }
+
+    const cleanTitle = strippedTitle;
+
+    const { body: fullContent, isFull } = extractContent(block);
+
+    const cleanDesc = isFull
+
+      ? stripHtml(fullContent.split(/\s+<\/p>/).slice(0, 3).join('')).slice(0, 300)
+
+      : stripHtml(description).slice(0, 300);
+
+    const combinedText = `${cleanTitle} ${category}`;
+
+    const autoCategory = categorize(combinedText);
+
+
+
+    if (cleanTitle && link.trim()) {
+
+      items.push({
+
+        id: slugify(cleanTitle),
+
+        title: cleanTitle,
+
+        description: cleanDesc,
+
+        content: isFull ? fullContent : '',
+
+        url: link.trim(),
+
+        date: parseDate(pubDate),
+
+        category: autoCategory,
+
+        subcategory: stripHtml(category),
+
+        author: cleanAuthor(author),
+
+        source: feedMeta.source,
+
+        image: image || null,
+
+        slug: slugify(cleanTitle),
+
+      });
+
+    }
+
+  }
+
+  return items;
+
+}
+
+
+
+async function fetchFeed(feed) {
+
+  try {
+
+    const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
+    const controller = new AbortController();
+
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    const res = await fetch(feed.url, {
+
+      signal: controller.signal,
+
+      redirect: 'manual',
+
+      headers: { 'User-Agent': UA },
+
+    });
+
+    clearTimeout(timeout);
+
+    if (!res.ok && (res.status < 300 || res.status >= 400)) throw new Error(`HTTP ${res.status}`);
+
+
+
+    let items = parseRSS(await res.text(), feed);
+
+    // Some feeds (e.g. Punch) ship the full body inside the 3xx response; others
+
+    // (BBC, Premium Times) return an empty 3xx and must be followed manually.
+
+    if (items.length === 0 && res.status >= 300 && res.status < 400) {
+
+      const location = res.headers.get('location');
+
+      if (location) {
+
+        const ctrl2 = new AbortController();
+
+        const timeout2 = setTimeout(() => ctrl2.abort(), 15000);
+
+        const res2 = await fetch(new URL(location, feed.url), {
+
+          signal: ctrl2.signal,
+
+          headers: { 'User-Agent': UA },
+
+        });
+
+        clearTimeout(timeout2);
+
+        if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
+
+        items = parseRSS(await res2.text(), feed);
+
+      }
+
+    }
+
+    console.log(`  [OK] ${feed.source}: ${items.length} articles`);
+
+    return items;
+
+  } catch (err) {
+
+    console.warn(`  [WARN] ${feed.source}: ${err.message}`);
+
+    return [];
+
+  }
+
+}
+
+
+
+function deduplicate(articles) {
+
+  const seen = new Set();
+
+  return articles.filter(a => {
+
+    const key = a.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+
+    return true;
+
+  });
+
+}
+
+
+
+function sortByDate(articles) {
+
+  return articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+}
+
+
+
+// Expand seed articles: build a proper HTML body and pick a themed placeholder image
+
+function expandSeeds(seeds) {
+
+  if (!Array.isArray(seeds)) return [];
+
+  const now = new Date();
+
+  return seeds.map((s, i) => {
+
+    const title = s.title || '';
+
+    const desc = s.description || '';
+
+    let image = s.image || null;
+
+    // Seeds carry no real photo; use a themed branded placeholder
+
+    if (!image) {
+
+      image = `https://placehold.co/800x450/0b0b0b/ffffff?text=${encodeURIComponent('Mindnewsng Guide')}`;
+
+    }
+
+    const paragraphs = desc
+
+      .match(/[^.!?]+[.!?]+/g)
+
+      .filter(p => p.trim().length > 20)
+
+      .map(p => `<p>${escapeHtml(p.trim())}</p>`)
+
+      .join('\n');
+
+    const content = s.content || `
+
+<h2>Overview</h2>
+
+${paragraphs || `<p>${escapeHtml(desc)}</p>`}
+
+<h2>Why it matters</h2>
+
+<p>This guide from Mindnewsng gives Nigerian readers a clear, practical breakdown of an important topic affecting everyday lives — from relocation and scholarship opportunities to finance and lifestyle decisions.</p>
+
+<p>For the most accurate and up-to-date details, always check the official source cited in this article, and speak to a verified and licensed professional before making any long-term commitment.</p>
+
+<p><em>Disclaimer: This article is for general information only and does not constitute legal, financial, or professional advice.</em></p>`;
+
+    return {
+
+      id: s.id || slugify(title),
+
+      title,
+
+      description: desc,
+
+      content,
+
+      url: s.url || '#',
+
+      date: s.date || new Date(new Date(now).setHours(now.getHours() - i)).toISOString(),
+
+      category: s.category || 'Guides',
+
+      subcategory: s.subcategory || '',
+
+      author: s.author || 'MindnewsNG',
+
+      source: s.source || 'MindnewsNG',
+
+      image,
+
+      slug: s.slug || slugify(title),
+
+    };
+
+  });
+
+}
+
+
+
+async function main() {
+
+  console.log('MindnewsNG RSS Fetcher');
+
+  console.log('='.repeat(40));
+
+
+
+  let allArticles = [];
+
+
+
+  console.log('\nFetching feeds...');
+
+  const results = await Promise.all(RSS_FEEDS.map(fetchFeed));
+
+  for (const items of results) {
+
+    allArticles.push(...items);
+
+  }
+
+
+
+  // Load seed articles as fallback/supplement
+
+  let seedArticles = [];
+
+  if (fs.existsSync(SEED_FILE)) {
+
+    try {
+
+      seedArticles = expandSeeds(JSON.parse(fs.readFileSync(SEED_FILE, 'utf-8')));
+
+      console.log(`\nLoaded ${seedArticles.length} seed articles`);
+
+    } catch (e) {
+
+      console.warn(`\nFailed to read seed.json: ${e.message}`);
+
+    }
+
+  }
+
+
+
+  // NEVER remove any article: load the entire existing articles.json and
+
+  // merge new RSS/seed items into it, so every story ever published stays live.
+
+  let existingPosts = [];
+
+  if (fs.existsSync(OUTPUT)) {
+
+    try {
+
+      const existing = JSON.parse(fs.readFileSync(OUTPUT, 'utf-8'));
+
+      existingPosts = (Array.isArray(existing) ? existing : []).filter(Boolean);
+
+      if (existingPosts.length) console.log(`\nPreserving all ${existingPosts.length} existing article(s)`);
+
+    } catch (e) {
+
+      console.warn(`
+
+Failed to read existing articles.json: ${e.message}`);
+
+    }
+
+  }
+
+
+
+  // Merge: everything existing first (never dropped), then new RSS, then seed fills gaps
+
+  const merged = [...existingPosts, ...allArticles, ...seedArticles];
+
+  const deduped = deduplicate(merged);
+
+  const sorted = sortByDate(deduped);
+
+
+
+  const final = sorted;
+
+
+
+  // Pinpoint dead/404 image URLs so we don't ship broken images
+
+  await prunefDeadImages(final);
+
+
+
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+
+  fs.writeFileSync(OUTPUT, JSON.stringify(final, null, 2));
+
+  console.log(`\nWrote ${final.length} articles to ${path.relative(process.cwd(), OUTPUT)}`);
+
+}
+
+
+
+// Cheap HEAD probe: feeds (esp. Punch/WordPress) sometimes publish image URLs
+
+// that their CDN no longer serves. Without this we'd render broken <img> tags.
+
+async function prunefDeadImages(articles) {
+
+  // Never prune manual/original posts, and skip trusted domains that often block bot checks.
+
+  const trusted = /vanguardngr\.com|punchng\.com|guardian\.ng|channelstv\.com|premiumtimesng\.com|bbc\.co\.uk|bbci\.co\.uk|aljazeera\.com|france24\.com|unsplash\.com|wikimedia\.org|wp\.com|cloudfront\.net/i;
+
+  const candidates = articles.filter(a => a && !(a.manual === true || a.source === 'Mindnewsng') && a.image && /^https?:/i.test(a.image) && !trusted.test(a.image));
+
+  if (candidates.length === 0) return;
+
+  console.log(`Verifying ${candidates.length} image URLs...`);
+
+
+
+  const dead = [];
+
+  const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
+  async function checkUrl(url) {
+
+    try {
+
+      const get = await fetch(url, {
+
+        method: 'GET',
+
+        redirect: 'follow',
+
+        signal: AbortSignal.timeout(10000),
+
+        headers: { 'User-Agent': UA, 'Referer': 'https://mindnewsng.com/', 'Accept': 'image/*,*/*;q=0.8' }
+
+      }).catch(() => null);
+
+      if (!get) return true; // network/timeout: keep (benefit of doubt)
+
+      if (get.status === 404 || get.status === 410) return false; // definitively gone
+
+      if (get.status >= 200 && get.status < 400) return true;
+
+      return true; // 403/401/429/5xx from bot checks: keep, browser/onerror will handle
+
+    } catch { return true; }
+
+  }
+
+
+
+  let index = 0;
+
+  for (const a of candidates) {
+
+    const ok = await checkUrl(a.image);
+
+    if (!ok) { dead.push(a.image); a.image = null; }
+
+    index++;
+
+    if (index % 20 === 0 || index === candidates.length) console.log(`  ${index}/${candidates.length}`);
+
+  }
+
+  if (dead.length) {
+
+    console.log(`  Dropped ${dead.length} dead image URL(s):`);
+
+    dead.slice(0, 5).forEach(u => console.log('    -', u.slice(0, 100)));
+
+  }
+
+}
+
+
+
+main().catch(err => {
+
+  console.error('Fatal error:', err.message);
+
+  process.exit(1);
+
+});
+
