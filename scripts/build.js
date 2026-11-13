@@ -1667,6 +1667,9 @@ function main() {
   // SEO
   buildSeoPages(articles);
 
+  // IndexNow key verification file (Bing/MSN instant indexing)
+  const ik = path.join(ROOT, '7dc7557d24fc212b6e610f7dccdedf48.txt');
+  if (fs.existsSync(ik)) fs.copyFileSync(ik, path.join(OUT, '7dc7557d24fc212b6e610f7dccdedf48.txt'));
   // Static landing pages (ebooks)
   const landingFiles = ['tiktok-viral-prompt-pack.html'];
   for (const lf of landingFiles) {
