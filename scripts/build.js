@@ -525,7 +525,7 @@ function buildSeoPages(articles) {
 <rss version="2.0">
   <channel>
     <title>${esc(SITE.name)} - ${esc(SITE.tagline)}</title>
-    <link>https://kushinaakintokunsunday-afk.github.io/mindnewsng/</link>
+    <link>${SITE.url}/</link>
     <description>${esc(SITE.description)}</description>
     <language>en</language>
     <lastBuildDate>${now}</lastBuildDate>
