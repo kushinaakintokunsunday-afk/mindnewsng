@@ -235,7 +235,7 @@ function absUrl(path) {
 
 function seoTags({ title, description, path, image, type = 'website' }) {
   const url = absUrl(path);
-  const img = image || placeholderImg('mindnewsng-share', 1200, 630);
+  const img = image || `${SITE.url}/images/og_default.jpg`;
   return `
     <meta name="description" content="${esc(description)}">
     <meta name="robots" content="index, follow, max-image-preview:large">
@@ -1250,6 +1250,8 @@ function buildStaticPages() {
 <html lang="en"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About - ${SITE.name}</title>
+    <meta name="description" content="About Mindnewsng - a Nigerian digital newspaper delivering accurate, timely breaking news, politics, business, sports and world news.">
+    <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
@@ -1266,12 +1268,21 @@ function buildStaticPages() {
     </div></header>
     <main id="main-content" class="container page-static">
         <h1>About Mindnewsng</h1>
-        <p>Mindnewsng is a leading Nigerian digital newspaper committed to delivering accurate, timely, and comprehensive news coverage.</p>
-        <p>Founded with the mission to keep Nigerians informed, we cover politics, business, entertainment, sports, technology, health, lifestyle and world news.</p>
+        <p>Mindnewsng (mindnewsng.com) is a Nigerian digital newspaper delivering breaking news, politics, business, sports, entertainment, jobs and education, technology, health and world news to Nigerian readers at home and in the diaspora.</p>
+        <p>We publish fast, verified summaries of the day's most important stories, drawing on trusted national and international news wires, and we always credit the originating outlet. Where we report allegations or unverified claims, we say so clearly and link to the full source.</p>
         <h2>Our Mission</h2>
-        <p>To provide truthful, balanced, and independent journalism that empowers Nigerians with the information they need to make informed decisions.</p>
-        <h2>Contact Us</h2>
-        <p>Email: <a href="mailto:${SITE.email}">${SITE.email}</a></p>
+        <p>To keep Nigerians informed with news that is accurate, balanced and independent &mdash; delivered quickly, in clear language, and free to read.</p>
+        <h2>What Makes Us Different</h2>
+        <ul>
+            <li><strong>Speed with standards.</strong> Stories are published as events unfold, but every report is checked and attributed before it goes live.</li>
+            <li><strong>Reader-first format.</strong> Our social posts link back to full stories here, so the complete picture is always on our own site.</li>
+            <li><strong>Independence.</strong> Editorial decisions are not influenced by advertisers or political interests. Sponsored content, where it ever appears, is clearly labelled.</li>
+        </ul>
+        <h2>How We Work</h2>
+        <p>Our newsroom combines automated monitoring of trusted feeds with human editors who select, verify and frame each story. Sensitive topics &mdash; deaths, crime, court cases and allegations &mdash; are handled with extra care and carry clear disclaimers.</p>
+        <p>Read more in our <a href="editorial-policy.html">Editorial Policy</a>.</p>
+        <h2>Get In Touch</h2>
+        <p>Email: <a href="mailto:${SITE.email}">${SITE.email}</a> &mdash; we welcome story tips, corrections and partnership enquiries. See our <a href="contact.html">Contact page</a> for details.</p>
     </main>
     ${footer()}
     ${backToTopBtn()}
@@ -1282,6 +1293,8 @@ function buildStaticPages() {
 <html lang="en"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - ${SITE.name}</title>
+    <meta name="description" content="Contact Mindnewsng - story tips, corrections, advertising enquiries and ebook store support. We respond within 24 hours.">
+    <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
@@ -1298,9 +1311,17 @@ function buildStaticPages() {
     </div></header>
     <main id="main-content" class="container page-static">
         <h1>Contact Us</h1>
-        <p>Have a story tip, correction, or inquiry? Reach out to us:</p>
-        <p>Email: <a href="mailto:${SITE.email}">${SITE.email}</a></p>
-        <p>We respond to all enquiries within 24 hours.</p>
+        <p>We read every message. Reach out on any of the topics below and we will respond within 24 hours (usually much sooner).</p>
+        <h2>General &amp; Story Tips</h2>
+        <p>Seen something newsworthy? Email <a href="mailto:${SITE.email}">${SITE.email}</a> with as much detail as possible &mdash; what happened, where, when, and any photos or documents you can share. We protect the identity of sources on request.</p>
+        <h2>Corrections</h2>
+        <p>Accuracy matters more than pride. Email <a href="mailto:${SITE.email}">${SITE.email}</a> with the subject line <strong>"Correction"</strong>, including the article link and what is wrong. Confirmed errors are fixed promptly and transparently.</p>
+        <h2>Advertising &amp; Partnerships</h2>
+        <p>For sponsored content, banner placements and partnerships, write to <a href="mailto:${SITE.email}">${SITE.email}</a> with the subject line <strong>"Advertising"</strong>.</p>
+        <h2>Ebook Store Support</h2>
+        <p>Purchased a guide and need help with your download or payment? Email <a href="mailto:${SITE.email}">${SITE.email}</a> with the subject line <strong>"Store Support"</strong> and we will resolve it within one business day.</p>
+        <h2>Social Media</h2>
+        <p>You can also reach us on our Facebook page <strong>Mindnewsng</strong> &mdash; send us a message there for quick questions.</p>
     </main>
     ${footer()}
     ${backToTopBtn()}
@@ -1311,6 +1332,8 @@ function buildStaticPages() {
 <html lang="en"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - ${SITE.name}</title>
+    <meta name="description" content="How Mindnewsng collects, uses and protects your data, including cookies, Google AdSense advertising and your rights.">
+    <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
@@ -1327,11 +1350,36 @@ function buildStaticPages() {
     </div></header>
     <main id="main-content" class="container page-static">
         <h1>Privacy Policy</h1>
-        <p>Mindnewsng respects your privacy. We collect minimal data to improve our service and do not sell personal information to third parties.</p>
-        <h2>Cookies</h2>
-        <p>We use cookies for analytics and advertising purposes. You can control cookie settings in your browser.</p>
-        <h2>Data Collection</h2>
-        <p>We collect only the data necessary to provide our service, including email addresses for newsletter subscribers.</p>
+        <p>Last updated: November 2026. This Privacy Policy explains how Mindnewsng ("we", "us", "our") collects, uses and protects information when you visit mindnewsng.com.</p>
+        <h2>Information We Collect</h2>
+        <ul>
+            <li><strong>Automatically collected data:</strong> when you browse the site, our servers and analytics tools collect standard log data such as your IP address, browser type, device type, pages visited, time spent and referring website. This is used in aggregate to understand traffic and improve the site.</li>
+            <li><strong>Information you give us:</strong> if you contact us by email or subscribe to a newsletter, we receive the name and email address you provide. We use it only to reply to you or send you the content you requested.</li>
+            <li><strong>Cookies and similar technologies:</strong> small files stored on your device that help the site function, remember preferences and measure performance.</li>
+        </ul>
+        <h2>Advertising &amp; Third-Party Vendors</h2>
+        <p>We may display advertising on the site, including ads served by <strong>Google AdSense</strong>.</p>
+        <ul>
+            <li>Third-party vendors, including Google, use cookies to serve ads based on your prior visits to this and other websites.</li>
+            <li>Google's use of advertising cookies enables it and its partners to serve ads to you based on your visit to our site and/or other sites on the Internet.</li>
+            <li>You may opt out of personalised advertising by visiting <strong>Google Ads Settings</strong> (adssettings.google.com) or opt out of a third-party vendor's use of cookies for personalised advertising at <strong>aboutads.info/choices</strong>.</li>
+        </ul>
+        <h2>Analytics</h2>
+        <p>We use Google Analytics to understand how visitors use the site. Google Analytics uses cookies to collect information such as pages visited and time on site in anonymised form. You can review Google's privacy practices at policies.google.com/privacy.</p>
+        <h2>How We Use Data</h2>
+        <p>We use collected data to operate and improve the website, measure audience, respond to enquiries, deliver newsletters you subscribe to, and display relevant advertising. We do <strong>not</strong> sell your personal information to third parties.</p>
+        <h2>Data Retention &amp; Security</h2>
+        <p>We keep personal data only as long as needed for the purposes above, and we apply reasonable technical measures to protect it. No internet transmission is ever 100% secure, but we treat your data with care.</p>
+        <h2>Your Rights</h2>
+        <p>You may request access to, correction of, or deletion of the personal data we hold about you by emailing <a href="mailto:${SITE.email}">${SITE.email}</a>. Nigerian residents may also refer to the Nigeria Data Protection Act 2023. You can control or delete cookies through your browser settings at any time.</p>
+        <h2>Children's Privacy</h2>
+        <p>Our site is not directed at children under 13, and we do not knowingly collect personal information from children.</p>
+        <h2>External Links</h2>
+        <p>Our articles and store link to third-party websites (for example, partner news outlets and our ebook checkout). We are not responsible for the privacy practices of those sites.</p>
+        <h2>Changes To This Policy</h2>
+        <p>We may update this policy as the site evolves. The "Last updated" date above will always reflect the current version.</p>
+        <h2>Contact</h2>
+        <p>Questions about privacy? Email <a href="mailto:${SITE.email}">${SITE.email}</a>.</p>
     </main>
     ${footer()}
     ${backToTopBtn()}
@@ -1342,6 +1390,8 @@ function buildStaticPages() {
 <html lang="en"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service - ${SITE.name}</title>
+    <meta name="description" content="Terms of use for mindnewsng.com - content licensing, disclaimers, ebook purchases via Selar and governing law.">
+    <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#db0000">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
@@ -1358,9 +1408,27 @@ function buildStaticPages() {
     </div></header>
     <main id="main-content" class="container page-static">
         <h1>Terms of Service</h1>
-        <p>By using Mindnewsng, you agree to these terms. Our content is provided for informational purposes.</p>
-        <h2>Content</h2>
-        <p>All content on Mindnewsng is protected by copyright. Reproduction without permission is prohibited.</p>
+        <p>Last updated: November 2026. By accessing or using mindnewsng.com you agree to these Terms. If you do not agree, please do not use the site.</p>
+        <h2>The Service</h2>
+        <p>Mindnewsng is a news publication. We publish original reporting, summaries and references to stories from partner news wires and national publications, always with attribution to the originating outlet. Content is provided for general informational purposes and does not constitute professional advice (legal, financial, medical or otherwise).</p>
+        <h2>Intellectual Property</h2>
+        <p>All content on Mindnewsng &mdash; text, design, logos and branding &mdash; is protected by copyright and may not be reproduced, redistributed or republished without written permission, except for short quotations with clear attribution and a link back to the original page. Third-party headlines, images and excerpts remain the property of their respective owners and are used with attribution.</p>
+        <h2>Accuracy &amp; Disclaimers</h2>
+        <p>We work hard to report accurately, but news develops quickly. Content is provided "as is" without warranties of any kind. Where a story involves allegations, court proceedings or unverified claims, we present them as such and link to sources; nothing on this site should be read as a finding of guilt against any person.</p>
+        <h2>User Contributions</h2>
+        <p>If you email us a tip, comment or material, you grant us a non-exclusive right to use, edit and publish it (with or without attribution, as agreed with you). You must not send unlawful, defamatory or infringing content.</p>
+        <h2>Ebook Purchases</h2>
+        <p>Digital products in our store (guides and prompt packs) are sold through our secure checkout partner, Selar. Payments are processed by Selar; we receive confirmation of purchase and provide support for delivery issues. Because products are digital downloads delivered instantly, all sales are final once the file has been downloaded, except where required by law. Contact <a href="mailto:${SITE.email}">${SITE.email}</a> for any purchase issue.</p>
+        <h2>Advertising &amp; Third-Party Links</h2>
+        <p>The site may display advertising and links to external websites. We are not responsible for the content, products or practices of third parties. Advertisements are clearly distinguishable from editorial content.</p>
+        <h2>Limitation of Liability</h2>
+        <p>To the maximum extent permitted by law, Mindnewsng and its operators shall not be liable for any indirect or consequential loss arising from your use of the site or reliance on its content.</p>
+        <h2>Governing Law</h2>
+        <p>These Terms are governed by the laws of the Federal Republic of Nigeria.</p>
+        <h2>Changes</h2>
+        <p>We may update these Terms from time to time; the "Last updated" date will reflect the current version. Continued use of the site constitutes acceptance of the updated Terms.</p>
+        <h2>Contact</h2>
+        <p>Questions about these Terms? Email <a href="mailto:${SITE.email}">${SITE.email}</a>.</p>
     </main>
     ${footer()}
     ${backToTopBtn()}
