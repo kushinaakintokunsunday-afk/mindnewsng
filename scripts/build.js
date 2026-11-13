@@ -323,15 +323,10 @@ function sortNewest(articles) {
 }
 
 // Normalize messy feed bylines into clean journalist names (mirrors fetch-rss).
+// MSN/Bing vetting wants a consistent full-name house byline on every article.
+const HOUSE_BYLINE = 'Kushina Akintokun Sunday';
 function cleanAuthorName(name) {
-  if (!name) return 'Mindnewsng Staff';
-  let n = String(name).trim();
-  const emailMatch = n.match(/^([^@\s]+)@/);
-  if (emailMatch) n = emailMatch[1];
-  n = n.replace(/\([^)]*[.][^)]*\)/g, '').replace(/\s*[a-z0-9-]+\.(com|net|org|ng|co|io)[a-z0-9./]*\s*$/gi, '');
-  n = n.replace(/\bThe\s+/i, '').replace(/\s+/g, ' ').trim();
-  if (!n || /^[^a-z]/i.test(n)) n = 'Mindnewsng Staff';
-  return n;
+  return HOUSE_BYLINE;
 }
 
 function authorsNames(articles) {
