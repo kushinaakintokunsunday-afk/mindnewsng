@@ -1028,6 +1028,7 @@ function buildArticlePage(article, allArticles) {
                 <img src="${esc(articleImage(article, 800, 450))}" alt="${esc(article.title)}" width="800" height="450" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                 <div class="img-fallback article-img-fb" style="display:none">MINDNEWSNG</div>
             </div>
+            ${article.source ? `<div class="photo-credit">Photo: ${esc(article.source)}</div>` : ''}
 
             <div class="article-body">
                 <p class="lead">${esc(article.description)}</p>
