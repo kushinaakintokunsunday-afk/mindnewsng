@@ -31,6 +31,11 @@ jobs:
       - name: Fetch news feeds & build site
         run: npm run generate
 
+      - name: IndexNow ping (Bing instant indexing)
+        if: success()
+        run: |
+          node -e "const a=require('./data/articles.json');const key='${KEY}';const urls=a.slice(0,20).map(x=>'https://mindnewsng.com/articles/'+x.slug+'.html');const body=JSON.stringify({host:'mindnewsng.com',key:key,urlList:urls});fetch('https://api.indexnow.org/indexnow',{method:'POST',headers:{'Content-Type':'application/json; charset=utf-8'},body}).then(r=>console.log('IndexNow status:',r.status)).catch(e=>console.log('IndexNow ping failed:',e.message))"
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
