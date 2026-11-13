@@ -423,6 +423,9 @@ function footer() {
                 <p class="footer-contact">
                     <a href="mailto:${SITE.email}">${SITE.email}</a>
                 </p>
+                <p class="footer-social-links">
+                    <a href="https://flipboard.com/@KUSHINAAKIN370a" target="_blank" rel="noopener">📰 Follow on Flipboard</a>
+                </p>
             </div>
         </div></div>
         <div class="footer-bottom"><div class="container">
