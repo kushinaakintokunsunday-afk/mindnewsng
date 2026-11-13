@@ -13,6 +13,12 @@ on:
         description: "Dry run (no posting)? true/false"
         default: "false"
 
+# One posting run at a time: queued runs wait instead of firing in parallel
+# (parallel runs caused the 8-posts-in-2-minutes burst that trips FB error 368).
+concurrency:
+  group: fb-post
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
