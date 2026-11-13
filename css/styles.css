@@ -341,3 +341,5 @@ h1, h2, h3, h4 { line-height: 1.3; }
 .ebook-promo-body p { margin: 0 0 .6rem; color: #d9d9d9; font-size: .86rem; line-height: 1.45; }
 .ebook-promo-btn { display: inline-block; background: #ffd60a; color: #15161a !important; font-weight: 700; padding: .5rem 1rem; border-radius: 8px; text-decoration: none; font-size: .85rem; }
 .ebook-promo-btn:hover { background: #fff; }
+
+.photo-credit { font-size: .75rem; color: #777; margin: -.5rem 0 1rem; text-align: right; font-style: italic; }
