@@ -11,7 +11,7 @@ const SITE = {
   name: 'Mindnewsng',
   tagline: 'Latest Nigeria News, Naija News and Breaking News Today',
   description: "Mindnewsng is your trusted Nigerian newspaper providing Breaking News, Latest News, Politics, Sport, Business, Entertainment and International headlines.",
-  email: 'info@mindnewsng.com',
+  email: 'editor@mindnewsng.com',
   phone: '+234 800 000 0000',
   baseUrl: '/',
   url: 'https://mindnewsng.com',
