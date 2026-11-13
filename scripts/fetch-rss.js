@@ -50,6 +50,8 @@ const RSS_FEEDS = [
 
   { source: 'Blueprint',       category: 'News',        url: 'https://blueprint.ng/feed/' },
 
+  { source: 'VeryNigerian',    category: 'News',        url: 'https://verynigerian.com/feed/' },
+
 
   // International sources relevant to Nigerians
 
