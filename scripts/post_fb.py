@@ -269,6 +269,37 @@ def post_photo(msg, img_bytes, url=None):
     return post_id
 
 
+def maybe_dispatch(state, today, dry, posted_this_run):
+    """Chain-fire the next run so posting continues until the daily quota is met.
+
+    This replaces reliance on GitHub's drifting cron: each run starts the next
+    one when it finishes. Stops when: quota reached, outside the posting
+    window (05-21 UTC = 6am-10pm WAT), or 3 consecutive runs posted nothing.
+    """
+    if dry:
+        return
+    posted_today = state["days"].get(today, 0)
+    if posted_today >= MAX_PER_DAY:
+        print("chain stop: daily quota reached"); return
+    h = datetime.now(timezone.utc).hour
+    if not (5 <= h < 21):
+        print("chain stop: outside posting window (05-21 UTC)"); return
+    fails = int(state.get("nogood") or 0)
+    if posted_this_run == 0:
+        fails += 1
+        if fails >= 3:
+            print("chain stop: 3 consecutive runs with no posts - check token/queue/state")
+            return
+    else:
+        fails = 0
+    state["nogood"] = fails
+    save_state(state)
+    r = subprocess.run(["gh", "workflow", "run", "FB Auto Post", "-R", REPO],
+                       capture_output=True, text=True)
+    print("chain: next run dispatched" if r.returncode == 0
+          else f"chain dispatch failed: {(r.stderr or '')[:200]}")
+
+
 def main():
     dry = "--dry-run" in sys.argv
     max_posts = 1
@@ -285,7 +316,12 @@ def main():
     if last_ts:
         delta = (now - datetime.fromisoformat(last_ts)).total_seconds() / 60
         if delta < MIN_SPACING_MIN:
-            print(f"spacing guard: {delta:.0f} min since last post"); return
+            wait = MIN_SPACING_MIN - delta
+            print(f"spacing guard: waiting {wait:.0f} min to honor the last post")
+            time.sleep(wait * 60)
+            now = datetime.now(timezone.utc)
+            today = now.strftime("%Y-%m-%d")
+            posted_today = state["days"].get(today, 0) or posted_today
     if posted_today >= MAX_PER_DAY:
         print(f"quota reached: {posted_today} posts today"); return
 
@@ -398,6 +434,7 @@ def main():
         except Exception as e:
             print(f"FAILED {aid}: {e}")
     print(f"done: {n} post(s)")
+    maybe_dispatch(state, today, dry, n)
 
 
 if __name__ == "__main__":
