@@ -62,25 +62,29 @@ def graph(path, data=None, method="GET"):
 
 
 def gh_get_raw(path):
-    """Return (bytes, sha) of a repo file, or (None, None)."""
+    """Return decoded text content of a repo file (works for files >1MB), or None."""
+    out = subprocess.run(
+        ["gh", "api", f"repos/{REPO}/contents/{path}?ref={BRANCH}",
+         "-H", "Accept: application/vnd.github.raw"],
+        capture_output=True, text=True)
+    if out.returncode != 0 or not out.stdout:
+        return None
+    return out.stdout
+
+
+def gh_meta_sha(path):
+    """Return the file's sha via Contents API metadata (content may be null)."""
     out = subprocess.run(
         ["gh", "api", f"repos/{REPO}/contents/{path}?ref={BRANCH}"],
         capture_output=True, text=True)
     try:
-        o = json.loads(out.stdout)
-        return base64.b64decode(o["content"]), o["sha"]
+        return json.loads(out.stdout)["sha"]
     except Exception:
-        return None, None
+        return None
 
 
 def gh_put_raw(path, content_bytes, message):
-    out = subprocess.run(
-        ["gh", "api", f"repos/{REPO}/contents/{path}?ref={BRANCH}"],
-        capture_output=True, text=True)
-    try:
-        sha = json.loads(out.stdout)["sha"]
-    except Exception:
-        sha = None
+    sha = gh_meta_sha(path)
     payload = {"message": message,
                "content": base64.b64encode(content_bytes).decode(),
                "branch": BRANCH}
@@ -93,15 +97,15 @@ def gh_put_raw(path, content_bytes, message):
 
 
 def fetch_articles():
-    raw, _ = gh_get_raw("data/articles.json")
-    return json.loads(raw.decode("utf-8"))
+    raw = gh_get_raw("data/articles.json")
+    return json.loads(raw) if raw else []
 
 
 def fetch_state():
-    raw, _ = gh_get_raw("data/fb_state.json")
+    raw = gh_get_raw("data/fb_state.json")
     if raw:
         try:
-            return json.loads(raw.decode("utf-8"))
+            return json.loads(raw)
         except Exception:
             pass
     return {"posted": {}, "days": {}, "last_ts": None}
@@ -113,10 +117,10 @@ def save_state(state):
 
 
 def fetch_queue():
-    raw, _ = gh_get_raw("data/fb_queue.json")
+    raw = gh_get_raw("data/fb_queue.json")
     if raw:
         try:
-            return json.loads(raw.decode("utf-8"))
+            return json.loads(raw)
         except Exception:
             pass
     return []
