@@ -814,6 +814,15 @@ function buildIndex(articles) {
             <a href="store.html" class="section-link">Visit Store &rarr;</a>
         </div>
         <section class="featured-ebooks">
+            <a href="rooted-praying.html" class="fe-card">
+                <img src="images/cover_rooted.png" alt="Rooted &amp; Praying cover" loading="lazy">
+                <div class="fe-body">
+                    <span class="store-badge">New</span>
+                    <h3>Rooted &amp; Praying &ndash; Christian Parenting Guide</h3>
+                    <p>Scripture, prayer and calm answers for 18 digital-age parenting situations.</p>
+                    <span class="fe-cta">Get it &rarr;</span>
+                </div>
+            </a>
             <a href="store.html" class="fe-card">
                 <img src="images/cover_smallbusiness.jpg" alt="Small Business Prompt Pack" loading="lazy">
                 <div class="fe-body">
@@ -1041,12 +1050,12 @@ function buildArticlePage(article, allArticles) {
             </div>
 
             <div class="ebook-promo">
-                <img src="../images/cover_smallbusiness.jpg" alt="Small Business Prompt Pack" loading="lazy">
+                <img src="../images/cover_rooted.png" alt="Rooted &amp; Praying &mdash; Christian Parenting Guide" loading="lazy">
                 <div class="ebook-promo-body">
-                    <span class="store-badge">Featured Ebook</span>
-                    <h3>Small Business Prompt Pack &mdash; From Zero to Your First 100 Customers</h3>
-                    <p>Ready-made AI prompts and playbooks to find customers, write offers and market your small business &mdash; without a big budget.</p>
-                    <a href="../store.html" class="buy-btn ebook-promo-btn">Get it on the Store &rarr;</a>
+                    <span class="store-badge">New &ndash; Featured Ebook</span>
+                    <h3>Rooted &amp; Praying &mdash; The Christian Parenting Guide for the Digital Age</h3>
+                    <p>Scripture, prayer and calm answers for 18 digital-age parenting situations &mdash; now with a launch discount.</p>
+                    <a href="../rooted-praying.html" class="buy-btn ebook-promo-btn">View the Book &rarr;</a>
                 </div>
             </div>
 
@@ -1550,12 +1559,22 @@ function buildStaticPages() {
         </div>
         <div class="store-grid">
             <div class="store-card">
+                <img src="images/cover_rooted.png" alt="Rooted &amp; Praying cover" loading="lazy">
+                <div class="sc-body">
+                    <span class="store-badge">New &ndash; 67% off</span>
+                    <h3>Rooted &amp; Praying &ndash; The Christian Parenting Guide for the Digital Age</h3>
+                    <p class="sc-desc">Scripture, prayer and ready answers for 18 of the hardest digital-age parenting situations &ndash; phones, DMs, screenshots and hard questions at dinner.</p>
+                    <div class="store-price"><span class="now">&#8358;5,000</span><span class="was">&#8358;15,000</span></div>
+                    <a class="buy-btn" href="rooted-praying.html" target="_blank" rel="noopener">View Book &ndash; Instant Download</a>
+                </div>
+            </div>
+            <div class="store-card">
                 <img src="images/cover_smallbusiness.jpg" alt="Small Business Prompt Pack cover" loading="lazy">
                 <div class="sc-body">
                     <span class="store-badge">Best for starters</span>
                     <h3>Small Business Prompt Pack &ndash; From Zero to Your First 100 Customers</h3>
                     <p class="sc-desc">Ready-made AI prompts and playbooks to find customers, write offers and market your small business without a big budget.</p>
-                    <div class="store-price"><span class="now">CFA 1,256</span></div>
+                    <div class="store-price"><span class="now">&#8358;2,500</span></div>
                     <a class="buy-btn" href="https://selar.com/6j91g4024d" target="_blank" rel="noopener">Buy Now &ndash; Instant Download</a>
                 </div>
             </div>
@@ -1565,7 +1584,7 @@ function buildStaticPages() {
                     <span class="store-badge">Hot deal &ndash; 50% off</span>
                     <h3>TikTok Viral Prompt Pack &ndash; From Zero to Your First 10,000 Followers</h3>
                     <p class="sc-desc">Copy-paste prompts for hooks, captions and video ideas engineered for the TikTok algorithm &ndash; built for Nigerian creators.</p>
-                    <div class="store-price"><span class="now">CFA 1,256</span><span class="was">CFA 2,511</span></div>
+                    <div class="store-price"><span class="now">&#8358;2,500</span><span class="was">&#8358;5,000</span></div>
                     <a class="buy-btn" href="https://selar.com/u31n0o040z" target="_blank" rel="noopener">Buy Now &ndash; Instant Download</a>
                 </div>
             </div>
@@ -1575,13 +1594,13 @@ function buildStaticPages() {
                     <span class="store-badge">Hot deal &ndash; 50% off</span>
                     <h3>YouTube Starter Prompt Pack &ndash; From Zero to Your First 1,000 Subscribers</h3>
                     <p class="sc-desc">Titles, thumbnails, scripts and channel-growth prompts to launch a channel and reach your first 1,000 subscribers faster.</p>
-                    <div class="store-price"><span class="now">CFA 1,256</span><span class="was">CFA 2,511</span></div>
+                    <div class="store-price"><span class="now">&#8358;2,500</span><span class="was">&#8358;5,000</span></div>
                     <a class="buy-btn" href="https://selar.com/99z92k6m7n" target="_blank" rel="noopener">Buy Now &ndash; Instant Download</a>
                 </div>
             </div>
         </div>
         <div class="store-note">
-            <strong>Secure checkout via Selar.</strong> Pay with card, bank transfer or USSD &ndash; prices convert automatically to your local currency (naira, cedi, CFA and more) at checkout. Your download link arrives instantly after payment. For support with any purchase, contact <a href="mailto:${SITE.email}">${SITE.email}</a>.
+            <strong>Secure checkout via Selar.</strong> Pay with card, bank transfer or USSD &ndash; prices convert automatically to your local currency (naira, cedi and more) at checkout. Your download link arrives instantly after payment. For support with any purchase, contact <a href="mailto:${SITE.email}">${SITE.email}</a>.
         </div>
     </main>
     ${footer()}
@@ -1674,7 +1693,7 @@ function main() {
   const ik = path.join(ROOT, '7dc7557d24fc212b6e610f7dccdedf48.txt');
   if (fs.existsSync(ik)) fs.copyFileSync(ik, path.join(OUT, '7dc7557d24fc212b6e610f7dccdedf48.txt'));
   // Static landing pages (ebooks)
-  const landingFiles = ['tiktok-viral-prompt-pack.html'];
+  const landingFiles = ['tiktok-viral-prompt-pack.html', 'rooted-praying.html'];
   for (const lf of landingFiles) {
     const src = path.join(ROOT, lf);
     if (fs.existsSync(src)) { fs.copyFileSync(src, path.join(OUT, lf)); console.log(`  Copied: ${lf}`); }
