@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -30,6 +30,15 @@ jobs:
 
       - name: Fetch news feeds & build site
         run: npm run generate
+
+      - name: Commit refreshed articles (FB poster reads these)
+        if: success()
+        run: |
+          git config user.name "mindnewsng-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/articles.json
+          git diff --cached --quiet || git commit -m "auto: refresh articles from feeds"
+          git push
 
       - name: IndexNow ping (Bing instant indexing)
         if: success()
