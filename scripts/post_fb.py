@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-"""Mindnewsng Facebook auto-poster.
-
-Reads data/articles.json, picks articles not yet posted to the page,
-downloads the article's real image, stamps the MINDNEWSNG.COM badge on it,
-uploads + posts with a Style A message, then adds a first comment with the link.
-State (posted article ids) is kept in data/fb_state.json (committed by the workflow).
-
-Usage: python scripts/post_fb.py [--dry-run] [--max-posts N]
-Env: FB_PAGE_ID, FB_PAGE_TOKEN
-"""
 import base64
 import io
 import json
@@ -17,6 +6,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+import urllib.parse
 from datetime import datetime, timezone, timedelta
 
 REPO = "kushinaakintokunsunday-afk/mindnewsng"
@@ -50,9 +40,6 @@ def http_json(url, data=None, method="GET"):
         return json.loads(r.read().decode("utf-8"))
 
 
-import urllib.parse  # noqa: E402
-
-
 def graph(path, data=None, method="GET"):
     if data is None:
         data = {}
@@ -79,7 +66,15 @@ def fetch_state():
         return {"posted": {}, "days": {}}, None
 
 
-def save_state(state, sha):
+def save_state(state, sha=None):
+    # always use a FRESH sha (state may be saved multiple times per run)
+    out = subprocess.run(
+        ["gh", "api", f"repos/{REPO}/contents/data/fb_state.json?ref={BRANCH}"],
+        capture_output=True, text=True)
+    try:
+        sha = json.loads(out.stdout)["sha"]
+    except Exception:
+        sha = None
     body = json.dumps(state, indent=1)
     payload = {"message": "fb: update post state",
                "content": base64.b64encode(body.encode()).decode(),
@@ -290,7 +285,10 @@ def main():
             state["last_ts"] = now.isoformat()
             print(f"POSTED {aid} -> {post_id}")
             n += 1
-            time.sleep(5)
+            save_state(state, sha)  # persist immediately so a crashed run loses nothing
+            if n < max_posts:
+                print(f"pacing: sleeping {MIN_SPACING_MIN} min before next post in this run")
+                time.sleep(MIN_SPACING_MIN * 60)
         except Exception as e:
             print(f"FAILED {aid}: {e}")
     if not dry and n and "last_ts" in state:
