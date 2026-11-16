@@ -1,3 +1,20 @@
+#!/usr/bin/env python3
+"""Mindnewsng Facebook auto-poster (queue edition).
+
+Order of posting:
+1. Curated queue items from data/fb_queue.json (user-approved stories, exact
+   pre-built message, pre-stamped card in repo images/) - these post first.
+2. Auto-fetched articles from data/articles.json (skips manual:true and
+   anything older than MAX_AGE_H hours).
+
+State (posted ids, daily quota, last post time) lives in data/fb_state.json.
+The queue item is removed from data/fb_queue.json right after it posts, and
+both files are saved with a fresh sha each time to avoid races with the
+agent pushing new items.
+
+Usage: python scripts/post_fb.py [--dry-run] [--max-posts N]
+Env: FB_PAGE_ID, FB_PAGE_TOKEN
+"""
 import base64
 import io
 import json
@@ -17,9 +34,6 @@ API = "https://graph.facebook.com/v23.0"
 MAX_PER_DAY = 20
 MIN_SPACING_MIN = 40
 MAX_AGE_H = 72  # never post articles older than this many hours
-CTA = ("\n\n\u2764\ufe0f LIKE | \U0001F4AC COMMENT your thoughts | "
-       "\U0001F501 SHARE to help someone\n"
-       "\u2795 FOLLOW MINDNEWSNG for daily updates \U0001F4C8")
 TAGS_BY_CAT = {
     "Jobs": "#JobsAbroad #Opportunity #Japa",
     "Money": "#Money #Finance #NaijaMoney",
@@ -47,44 +61,79 @@ def graph(path, data=None, method="GET"):
     return http_json(f"{API}/{path}", data=data, method=method)
 
 
-def fetch_articles():
+def gh_get_raw(path):
+    """Return (bytes, sha) of a repo file, or (None, None)."""
     out = subprocess.run(
-        ["gh", "api", f"repos/{REPO}/contents/data/articles.json?ref={BRANCH}"],
-        capture_output=True, text=True)
-    o = json.loads(out.stdout)
-    return json.loads(base64.b64decode(o["content"]).decode("utf-8"))
-
-
-def fetch_state():
-    out = subprocess.run(
-        ["gh", "api", f"repos/{REPO}/contents/data/fb_state.json?ref={BRANCH}"],
+        ["gh", "api", f"repos/{REPO}/contents/{path}?ref={BRANCH}"],
         capture_output=True, text=True)
     try:
         o = json.loads(out.stdout)
-        return json.loads(base64.b64decode(o["content"]).decode("utf-8")), o["sha"]
+        return base64.b64decode(o["content"]), o["sha"]
     except Exception:
-        return {"posted": {}, "days": {}}, None
+        return None, None
 
 
-def save_state(state, sha=None):
-    # always use a FRESH sha (state may be saved multiple times per run)
+def gh_put_raw(path, content_bytes, message):
     out = subprocess.run(
-        ["gh", "api", f"repos/{REPO}/contents/data/fb_state.json?ref={BRANCH}"],
+        ["gh", "api", f"repos/{REPO}/contents/{path}?ref={BRANCH}"],
         capture_output=True, text=True)
     try:
         sha = json.loads(out.stdout)["sha"]
     except Exception:
         sha = None
-    body = json.dumps(state, indent=1)
-    payload = {"message": "fb: update post state",
-               "content": base64.b64encode(body.encode()).decode(),
+    payload = {"message": message,
+               "content": base64.b64encode(content_bytes).decode(),
                "branch": BRANCH}
     if sha:
         payload["sha"] = sha
-    subprocess.run(
-        ["gh", "api", "--method", "PUT",
-         f"repos/{REPO}/contents/data/fb_state.json",
+    r = subprocess.run(
+        ["gh", "api", "--method", "PUT", f"repos/{REPO}/contents/{path}",
          "--input", "-"], input=json.dumps(payload), text=True, capture_output=True)
+    return r.returncode == 0
+
+
+def fetch_articles():
+    raw, _ = gh_get_raw("data/articles.json")
+    return json.loads(raw.decode("utf-8"))
+
+
+def fetch_state():
+    raw, _ = gh_get_raw("data/fb_state.json")
+    if raw:
+        try:
+            return json.loads(raw.decode("utf-8"))
+        except Exception:
+            pass
+    return {"posted": {}, "days": {}, "last_ts": None}
+
+
+def save_state(state):
+    gh_put_raw("data/fb_state.json", json.dumps(state, indent=1).encode(),
+               "fb: update post state")
+
+
+def fetch_queue():
+    raw, _ = gh_get_raw("data/fb_queue.json")
+    if raw:
+        try:
+            return json.loads(raw.decode("utf-8"))
+        except Exception:
+            pass
+    return []
+
+
+def save_queue(items):
+    """Re-fetch, drop nothing, then write the exact given list (fresh sha)."""
+    return gh_put_raw("data/fb_queue.json", json.dumps(items, indent=1, ensure_ascii=False).encode(),
+                      "fb: update curated post queue")
+
+
+def queue_remove(aid):
+    """Remove one id from the queue without losing concurrent additions."""
+    items = fetch_queue()
+    remaining = [i for i in items if i.get("id") != aid]
+    if len(remaining) != len(items):
+        save_queue(remaining)
 
 
 def recent_messages():
@@ -190,6 +239,32 @@ def build_message(a):
     return msg
 
 
+def post_photo(msg, img_bytes, url=None):
+    """Single multipart call: image + text -> one post. Returns post_id."""
+    import uuid
+    boundary = "----mindnewsng" + uuid.uuid4().hex
+    fields = {"access_token": TOKEN, "published": "true", "message": msg}
+    parts = []
+    for k, v in fields.items():
+        parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"{k}\"\r\n\r\n{v}\r\n".encode())
+    parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"source\"; filename=\"post.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".encode())
+    parts.append(img_bytes)
+    parts.append(f"\r\n--{boundary}--\r\n".encode())
+    req = urllib.request.Request(
+        f"{API}/{PAGE_ID}/photos", data=b"".join(parts), method="POST")
+    req.add_header("Content-Type", f"multipart/form-data; boundary={boundary}")
+    with urllib.request.urlopen(req, timeout=120) as r:
+        photo = json.loads(r.read().decode("utf-8"))
+    post_id = photo.get("post_id") or photo.get("id")
+    if url:
+        try:
+            graph(f"{post_id}/comments",
+                  data={"message": f"More details here: {url}"})
+        except Exception:
+            pass  # link already in post text
+    return post_id
+
+
 def main():
     dry = "--dry-run" in sys.argv
     max_posts = 1
@@ -198,8 +273,7 @@ def main():
     if not dry and (not PAGE_ID or not TOKEN):
         print("FB_PAGE_ID / FB_PAGE_TOKEN missing"); sys.exit(1)
 
-    arts = fetch_articles()
-    state, sha = fetch_state()
+    state = fetch_state()
     now = datetime.now(timezone.utc)
     today = now.strftime("%Y-%m-%d")
     posted_today = state["days"].get(today, 0)
@@ -213,13 +287,63 @@ def main():
 
     seen = recent_messages()
     n = 0
+
+    def quota_left():
+        return max_posts - n, MAX_PER_DAY - (posted_today + n)
+
+    # ---------- 1. curated queue (priority) ----------
+    queue = fetch_queue()
+    for item in queue:
+        left, quota = quota_left()
+        if left <= 0 or quota <= 0:
+            break
+        aid = item.get("id")
+        if not aid:
+            continue
+        if aid in state["posted"]:
+            queue_remove(aid)
+            continue
+        msg = item.get("message", "")
+        title = item.get("title", aid)
+        card = item.get("card", "")
+        img_bytes = None
+        if card.startswith("http"):
+            try:
+                img_bytes = load_image(card)  # pre-stamped, no re-badge
+            except Exception as e:
+                print(f"queue card load fail ({e}), using fallback")
+        if img_bytes is None:
+            img_bytes = fallback_card(title)
+        if dry:
+            print(f"--- DRY RUN (queue): {aid}\nIMAGE: {card or 'fallback'} ({len(img_bytes)//1024}KB)\n{msg}\n")
+            n += 1
+            continue
+        try:
+            pid = post_photo(msg, img_bytes, url=item.get("url"))
+            state["posted"][aid] = [now.isoformat()]
+            state["days"][today] = posted_today + n + 1
+            state["last_ts"] = now.isoformat()
+            print(f"POSTED (queue) {aid} -> {pid}")
+            n += 1
+            save_state(state)
+            queue_remove(aid)
+            left, _ = quota_left()
+            if left > 0:
+                print(f"pacing: sleeping {MIN_SPACING_MIN} min before next post in this run")
+                time.sleep(MIN_SPACING_MIN * 60)
+        except Exception as e:
+            print(f"FAILED (queue) {aid}: {e}")
+
+    # ---------- 2. auto-fetched articles ----------
+    arts = fetch_articles()
     for a in arts:
-        if n >= max_posts or posted_today + n >= MAX_PER_DAY:
+        left, quota = quota_left()
+        if left <= 0 or quota <= 0:
             break
         aid = a.get("id") or a.get("slug")
         if not aid or aid in state["posted"]:
             continue
-        # skip articles flagged manual (posted manually after user approval)
+        # skip articles flagged manual (they go through the curated queue)
         if a.get("manual"):
             continue
         # freshness: skip articles older than MAX_AGE_H hours
@@ -256,44 +380,19 @@ def main():
             n += 1
             continue
         try:
-            # single multipart call: image + text together -> exactly one post
-            import uuid
-            boundary = "----mindnewsng" + uuid.uuid4().hex
-            fields = {"access_token": TOKEN, "published": "true", "message": msg}
-            parts = []
-            for k, v in fields.items():
-                parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"{k}\"\r\n\r\n{v}\r\n".encode())
-            parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"source\"; filename=\"post.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".encode())
-            parts.append(img_bytes)
-            parts.append(f"\r\n--{boundary}--\r\n".encode())
-            body = b"".join(parts)
-            req = urllib.request.Request(
-                f"{API}/{PAGE_ID}/photos", data=body, method="POST")
-            req.add_header("Content-Type",
-                           f"multipart/form-data; boundary={boundary}")
-            with urllib.request.urlopen(req, timeout=120) as r:
-                photo = json.loads(r.read().decode("utf-8"))
-            post_id = photo.get("post_id") or photo.get("id")
-            if url:
-                try:
-                    graph(f"{post_id}/comments",
-                          data={"message": f"More details here: {url}"})
-                except Exception:
-                    pass  # link already in post text
+            post_id = post_photo(msg, img_bytes, url=url)
             state["posted"][aid] = [now.isoformat()]
             state["days"][today] = posted_today + n + 1
             state["last_ts"] = now.isoformat()
             print(f"POSTED {aid} -> {post_id}")
             n += 1
-            save_state(state, sha)  # persist immediately so a crashed run loses nothing
-            if n < max_posts:
+            save_state(state)
+            left, _ = quota_left()
+            if left > 0:
                 print(f"pacing: sleeping {MIN_SPACING_MIN} min before next post in this run")
                 time.sleep(MIN_SPACING_MIN * 60)
         except Exception as e:
             print(f"FAILED {aid}: {e}")
-    if not dry and n and "last_ts" in state:
-        save_state(state, sha)
-        print("state saved")
     print(f"done: {n} post(s)")
 
 
