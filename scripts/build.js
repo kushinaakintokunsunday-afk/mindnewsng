@@ -1673,6 +1673,93 @@ function copyAssets() {
   console.log('  Copied assets (css, js, images, favicon)');
 }
 
+// ─── Nairaland Copy Desk (private helper page for manual posting) ──
+
+function nlSection(article) {
+  const title = (article.title || '').toLowerCase();
+  const cat = articleCategory(article);
+  if (/passport|visa|deport|embassy/.test(title)) return 'Travel';
+  if (cat === 'Jobs & Education') return 'Jobs/Vacancies';
+  if (cat === 'Sports') return 'Sports';
+  if (cat === 'Politics') return 'Politics';
+  if (cat === 'World News') return 'Foreign Affairs';
+  if (cat === 'Health') return 'Health';
+  return 'News';
+}
+
+function nlQuestion(section) {
+  const q = {
+    'Jobs/Vacancies': 'Would you apply? Share your thoughts.',
+    'Travel': 'Nigerians abroad or planning to relocate, how does this affect you?',
+    'Foreign Affairs': 'What is your take on this?',
+    'Politics': 'What is your take on this?',
+    'Sports': 'Tell us what you think.',
+    'Health': 'Your thoughts on this?',
+  };
+  return q[section] || 'What is your take on this?';
+}
+
+function buildNairalandDesk(articles) {
+  const qPath = path.join(ROOT, 'data', 'fb_queue.json');
+  if (!fs.existsSync(qPath)) return;
+  let queue = [];
+  try { queue = JSON.parse(fs.readFileSync(qPath, 'utf-8')); } catch (e) { return; }
+  if (!Array.isArray(queue) || queue.length === 0) return;
+  const byId = Object.fromEntries(articles.map(a => [a.id || a.slug, a]));
+  const strip = t => (t || '').replace(/ - Check Below For Full Details\s*$/i, '');
+  const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+  const cards = queue.map((item, idx) => {
+    const a = byId[item.id] || {};
+    const title = strip(item.title || a.title || item.id);
+    const section = nlSection(a.id ? a : { title: item.title, category: '', subcategory: '' });
+    const desc = (a.description || '').replace(/<[^>]+>/g, '').trim();
+    const body = `${desc}\n\nFull details: ${item.url}\n\n${nlQuestion(section)}`;
+    return `<div class="nl-card">
+      <div class="nl-head"><span class="nl-sec">${esc(section)}</span><small>#${idx + 1} &middot; in FB queue</small></div>
+      <div class="nl-row"><b>Title</b><div class="nl-copywrap"><textarea id="t${idx}" rows="2">${esc(title)}</textarea><button class="nl-copy" data-t="t${idx}">Copy Title</button></div></div>
+      <div class="nl-row"><b>Body</b><div class="nl-copywrap"><textarea id="b${idx}" rows="8">${esc(body)}</textarea><button class="nl-copy" data-t="b${idx}">Copy Body</button></div></div>
+      <div class="nl-links"><a href="${esc(item.url)}" target="_blank" rel="noopener">Open article</a> &middot; <a href="https://www.nairaland.com/${esc(section.toLowerCase().replace(/[^a-z]+/g, ''))}" target="_blank" rel="noopener">Open ${esc(section)} section</a></div>
+    </div>`;
+  }).join('\n');
+
+  const page = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Nairaland Copy Desk | Mindnewsng (private)</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;margin:0;background:#f4f6f3;color:#152018}
+header{background:#1f7a4d;color:#fff;padding:18px 20px}header h1{margin:0;font-size:1.3rem}header p{margin:6px 0 0;opacity:.9;font-size:.9rem}
+main{max-width:760px;margin:0 auto;padding:20px}
+.nl-card{background:#fff;border:1px solid #d8e2da;border-radius:14px;padding:18px;margin-bottom:18px}
+.nl-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.nl-sec{background:#1f7a4d;color:#fff;border-radius:999px;padding:.25rem .7rem;font-size:.75rem;font-weight:700;text-transform:uppercase}
+.nl-row{margin:10px 0}.nl-row b{font-size:.85rem;color:#41564a}
+.nl-copywrap{display:flex;gap:8px;margin-top:4px}
+textarea{flex:1;border:1px solid #cfd9d1;border-radius:8px;padding:8px;font:inherit;font-size:.9rem;resize:vertical;background:#fbfcfa}
+.nl-copy{background:#1f7a4d;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;align-self:flex-start}
+.nl-copy:hover{background:#185d3b}
+.nl-links{margin-top:8px;font-size:.85rem}.nl-links a{color:#1f7a4d}
+.empty{text-align:center;color:#68796e;padding:40px 0}
+footer{text-align:center;color:#68796e;font-size:.8rem;padding:20px}
+</style></head><body>
+<header><h1>Nairaland Copy Desk</h1><p>Private helper &mdash; every story waiting in the FB queue, pre-formatted for Nairaland. Copy Title &rarr; paste, Copy Body &rarr; paste, then reply to comments.</p></header>
+<main>${cards}
+<p class="empty" style="font-size:.8rem">Rules: one section per story &middot; max ~3 posts/day &middot; always reply to comments &middot; never post a bare link.</p>
+</main><footer>Mindnewsng internal tool &mdash; do not share this URL.</footer>
+<script>
+document.querySelectorAll('.nl-copy').forEach(b=>b.onclick=async()=>{
+  const el=document.getElementById(b.dataset.t);el.select();
+  try{await navigator.clipboard.writeText(el.value);b.textContent='Copied \\u2713';}
+  catch(x){document.execCommand('copy');b.textContent='Copied \\u2713';}
+  setTimeout(()=>b.textContent=b.textContent.replace(' \\u2713',''),1600);
+});
+</script></body></html>`;
+
+  fs.writeFileSync(path.join(OUT, 'nairaland.html'), page);
+  console.log(`  Built: nairaland.html (${queue.length} queued stories)`);
+}
+
 // ─── Main ─────────────────────────────────────────────────────────
 
 function main() {
@@ -1707,6 +1794,9 @@ function main() {
 
   // Static pages
   buildStaticPages();
+
+  // Nairaland copy desk (private helper)
+  buildNairalandDesk(articles);
 
   // Author pages
   buildAuthorPages(articles);
