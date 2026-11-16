@@ -560,14 +560,39 @@ function buildSeoPages(articles) {
 
   fs.writeFileSync(path.join(OUT, 'rss.xml'), rss);
   fs.writeFileSync(path.join(OUT, 'sitemap.xml'), sitemap);
-  fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE.url}/sitemap.xml`);
+
+  // Google News sitemap: articles from the last 48 hours only (news crawler)
+  const xesc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+  const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+  const newsArts = articles.filter(a => {
+    const t = new Date(a.date).getTime();
+    return !isNaN(t) && t >= cutoff;
+  }).slice(0, 1000);
+  const newsSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+  ${newsArts.map(a => `
+  <url>
+    <loc>${SITE.url}/articles/${a.slug}.html</loc>
+    <news:news>
+      <news:publication>
+        <news:name>${xesc(SITE.name)}</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>${new Date(a.date).toISOString()}</news:publication_date>
+      <news:title>${xesc(a.title)}</news:title>
+    </news:news>
+  </url>`).join('\n')}
+</urlset>`;
+  fs.writeFileSync(path.join(OUT, 'news-sitemap.xml'), newsSitemap);
+
+  fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE.url}/sitemap.xml\nSitemap: ${SITE.url}/news-sitemap.xml`);
   if (SITE.adsense) {
     fs.writeFileSync(path.join(OUT, 'ads.txt'), `google.com, ${SITE.adsense.replace('ca-pub-', '')}, DIRECT, f08c47fec0942fa0\n`);
   } else {
     const sample = 'google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0';
     fs.writeFileSync(path.join(OUT, 'ads.txt'), '# Remove the # below to enable AdSense ads\n' + sample + '\n');
   }
-  console.log('  Built: rss.xml, sitemap.xml, robots.txt, ads.txt');
+  console.log(`  Built: rss.xml, sitemap.xml, news-sitemap.xml (${newsArts.length} fresh), robots.txt, ads.txt`);
 }
 
 function buildIndex(articles) {
