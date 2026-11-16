@@ -8,7 +8,7 @@ on:
     inputs:
       max_posts:
         description: "How many posts this run"
-        default: "1"
+        default: "3"
       dry_run:
         description: "Dry run (no posting)? true/false"
         default: "false"
@@ -41,5 +41,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           python scripts/post_fb.py \
-            --max-posts "${{ github.event.inputs.max_posts || '1' }}" \
+            --max-posts "${{ github.event.inputs.max_posts || '3' }}" \
             $( [ "${{ github.event.inputs.dry_run || 'false' }}" = "true" ] && echo "--dry-run" )
