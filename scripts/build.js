@@ -483,7 +483,7 @@ function articleCard(article, size = 'full') {
         <h3 class="headline">${esc(article.title)}</h3>
         <div class="card-info">
             <span class="info-category">${esc(cat)}</span>
-            <span class="info-author">By ${esc(article.author)}</span>
+            <span class="info-author">By ${esc(cleanAuthorName(article))}</span>
             <span class="info-time">${formatDate(article.date)}</span>
             <span class="info-read">${read} min read</span>
         </div>
@@ -706,7 +706,7 @@ function buildIndex(articles) {
                     <p class="desc">${esc(hero1.description)}</p>
                     <div class="card-info">
                         <span class="info-category">${esc(articleCategory(hero1))}</span>
-                        <span class="info-author">By ${esc(hero1.author)}</span>
+                        <span class="info-author">By ${esc(cleanAuthorName(hero1))}</span>
                         <span class="info-time">${formatDate(hero1.date)}</span>
                         <span class="info-read">${readingTime(hero1)} min read</span>
                     </div>
@@ -722,7 +722,7 @@ function buildIndex(articles) {
                     <h2 class="headline-main">${esc(hero2.title)}</h2>
                     <div class="card-info">
                         <span class="info-category">${esc(articleCategory(hero2))}</span>
-                        <span class="info-author">By ${esc(hero2.author)}</span>
+                        <span class="info-author">By ${esc(cleanAuthorName(hero2))}</span>
                         <span class="info-time">${formatDate(hero2.date)}</span>
                         <span class="info-read">${readingTime(hero2)} min read</span>
                     </div>
