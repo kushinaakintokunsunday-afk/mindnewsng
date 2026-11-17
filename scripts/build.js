@@ -269,7 +269,7 @@ function orgSchema() {
 function newsArticleSchema(article, cat) {
   const img = articleImage(article, 1200, 630);
   const pubDate = new Date(article.date).toISOString();
-  const author = cleanAuthorName(article.author);
+  const author = cleanAuthorName(article);
   const authorUrl = absUrl(`/authors/${slugify(author)}.html`);
   const pageUrl = absUrl(`/articles/${article.slug}.html`);
   const data = {
@@ -323,16 +323,18 @@ function sortNewest(articles) {
 }
 
 // Normalize messy feed bylines into clean journalist names (mirrors fetch-rss).
-// MSN/Bing vetting wants a consistent full-name house byline on every article.
-const HOUSE_BYLINE = 'Kushina Akintokun Sunday';
-function cleanAuthorName(name) {
-  return HOUSE_BYLINE;
+// Byline policy: feed-fetched stories credit their original source; our own articles use the Mindnewsng byline.
+function cleanAuthorName(article) {
+  if (article && article.manual) return 'Mindnewsng';
+  const src = String((article && (article.source || article.author)) || '').trim();
+  if (!src || /google news/i.test(src)) return 'Mindnewsng';
+  return src;
 }
 
 function authorsNames(articles) {
   const merged = {};
   for (const a of articles) {
-    const name = cleanAuthorName(a.author);
+    const name = cleanAuthorName(a);
     merged[name] = true;
   }
   return Object.keys(merged);
@@ -1049,7 +1051,7 @@ function buildArticlePage(article, allArticles) {
                 <span class="category-tag" style="--cat-color:${getCatColor(cat)}">${esc(cat)}</span>
                 <h1>${esc(article.title)}</h1>
                 <div class="article-meta">
-                    <span class="meta-author">By <a href="../authors/${slugify(cleanAuthorName(article.author))}.html" class="author-link">${esc(cleanAuthorName(article.author))}</a></span>
+                    <span class="meta-author">By <a href="../authors/${slugify(cleanAuthorName(article))}.html" class="author-link">${esc(cleanAuthorName(article))}</a></span>
                     <span class="meta-source">${esc(article.source)}</span>
                     <span class="meta-date">${formatDate(article.date)}</span>
                     <span class="meta-read">${readingTime(article)} min read</span>
@@ -1117,7 +1119,7 @@ function buildArticlePage(article, allArticles) {
 function buildAuthorPages(articles) {
   const byAuthor = {};
   for (const a of articles) {
-    const name = cleanAuthorName(a.author);
+    const name = cleanAuthorName(a);
     (byAuthor[name] = byAuthor[name] || []).push(a);
   }
 
