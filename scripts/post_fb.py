@@ -409,7 +409,15 @@ def main():
             print(f"POSTED (queue) {aid} -> {pid}")
             n += 1
             save_state(state)
-            queue_remove(aid)
+            remaining = int(item.get("repost") or 0)
+            newq = [i for i in queue if i.get("id") != aid]
+            if remaining > 0:
+                nxt = dict(item); nxt["repost"] = remaining - 1
+                newq.append(nxt)
+                save_queue(newq)
+                print(f"requeued for repost: {aid} -> x{remaining - 1}")
+            else:
+                save_queue(newq)
             left, _ = quota_left()
             if left > 0:
                 print(f"pacing: sleeping {spacing} min before next post in this run")
