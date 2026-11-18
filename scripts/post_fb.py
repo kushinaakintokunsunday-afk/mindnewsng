@@ -117,6 +117,17 @@ def save_state(state):
                "fb: update post state")
 
 
+def fetch_tuning():
+    """Optional data/fb_tuning.json: {"min_spacing_min": N, "until": "YYYY-MM-DD"}"""
+    raw = gh_get_raw("data/fb_tuning.json")
+    if not raw:
+        return {}
+    try:
+        return json.loads(raw)
+    except Exception:
+        return {}
+
+
 def fetch_queue():
     raw = gh_get_raw("data/fb_queue.json")
     if raw:
@@ -325,6 +336,19 @@ def main():
     if not dry and (not PAGE_ID or not TOKEN):
         print("FB_PAGE_ID / FB_PAGE_TOKEN missing"); sys.exit(1)
 
+    # spacing: default 40 min, temporarily overridable via data/fb_tuning.json
+    spacing = MIN_SPACING_MIN
+    tune = fetch_tuning()
+    try:
+        n = int(tune.get("min_spacing_min") or 0)
+        until = str(tune.get("until") or "")
+        today_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if n > 0 and (not until or today_utc <= until):
+            spacing = n
+            print(f"spacing override active: {spacing} min (until {until or 'unset'})")
+    except Exception:
+        spacing = MIN_SPACING_MIN
+
     state = fetch_state()
     now = datetime.now(timezone.utc)
     today = now.strftime("%Y-%m-%d")
@@ -332,8 +356,8 @@ def main():
     last_ts = state.get("last_ts")
     if last_ts:
         delta = (now - datetime.fromisoformat(last_ts)).total_seconds() / 60
-        if delta < MIN_SPACING_MIN:
-            wait = MIN_SPACING_MIN - delta
+        if delta < spacing:
+            wait = spacing - delta
             print(f"spacing guard: waiting {wait:.0f} min to honor the last post")
             time.sleep(wait * 60)
             now = datetime.now(timezone.utc)
@@ -388,8 +412,8 @@ def main():
             queue_remove(aid)
             left, _ = quota_left()
             if left > 0:
-                print(f"pacing: sleeping {MIN_SPACING_MIN} min before next post in this run")
-                time.sleep(MIN_SPACING_MIN * 60)
+                print(f"pacing: sleeping {spacing} min before next post in this run")
+                time.sleep(spacing * 60)
         except Exception as e:
             print(f"FAILED (queue) {aid}: {e}")
 
@@ -448,8 +472,8 @@ def main():
             save_state(state)
             left, _ = quota_left()
             if left > 0:
-                print(f"pacing: sleeping {MIN_SPACING_MIN} min before next post in this run")
-                time.sleep(MIN_SPACING_MIN * 60)
+                print(f"pacing: sleeping {spacing} min before next post in this run")
+                time.sleep(spacing * 60)
         except Exception as e:
             print(f"FAILED {aid}: {e}")
     print(f"done: {n} post(s)")
