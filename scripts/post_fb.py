@@ -19,6 +19,7 @@ import base64
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -153,6 +154,21 @@ def normalize(s):
     return "".join(c for c in s.lower() if c.isalnum())
 
 
+# --- first-comment link strategy -----------------------------------------
+# Caption stays clean (no link). The story link is posted as the FIRST
+# COMMENT, because Facebook gives link posts far less reach than photo posts.
+def extract_url(text):
+    m = re.search(r"https?://[^\s]+", text or "")
+    return m.group(0) if m else ""
+
+
+def strip_link(text):
+    lines = [ln for ln in (text or "").splitlines()
+             if not re.search(r"https?://", ln)]
+    out = "\n".join(lines)
+    return re.sub(r"\n{3,}", "\n\n", out).strip()
+
+
 def load_image(url):
     if os.name == "nt":
         r = subprocess.run(["curl.exe", "-s", "-L", "--max-time", "90",
@@ -236,9 +252,9 @@ def build_message(a):
     url = a.get("url", "")
     cat = a.get("category", "")
     tags = TAGS_BY_CAT.get(cat, "#NaijaNews #BreakingNews")
+    # Link is NOT in the caption - it goes in the first comment (more reach).
     msg = (f"\U0001f6a8 {title}\n\n"
-           "\U0001F449 Full story here: " + url + "\n"
-           "\u2764\uFE0f LIKE | \U0001F4AC COMMENT | \U0001F501 SHARE\n"
+           "\u2764\uFE0F LIKE | \U0001F4AC COMMENT | \U0001F501 SHARE\n"
            "\u2795 FOLLOW for daily updates\n" + tags + " #Mindnewsng")
     return msg
 
@@ -263,9 +279,10 @@ def post_photo(msg, img_bytes, url=None):
     if url:
         try:
             graph(f"{post_id}/comments",
-                  data={"message": f"More details here: {url}"})
-        except Exception:
-            pass  # link already in post text
+                  data={"message": f"\U0001F449 Full story here: {url}"})
+            print(f"  first comment posted on {post_id}")
+        except Exception as e:
+            print(f"  first comment failed on {post_id}: {e}")
     return post_id
 
 
@@ -345,6 +362,8 @@ def main():
             continue
         msg = item.get("message", "")
         title = item.get("title", aid)
+        url = item.get("url") or extract_url(msg)
+        msg = strip_link(msg)
         card = item.get("card", "")
         img_bytes = None
         if card.startswith("http"):
@@ -359,7 +378,7 @@ def main():
             n += 1
             continue
         try:
-            pid = post_photo(msg, img_bytes, url=item.get("url"))
+            pid = post_photo(msg, img_bytes, url=url)
             state["posted"][aid] = [now.isoformat()]
             state["days"][today] = posted_today + n + 1
             state["last_ts"] = now.isoformat()
