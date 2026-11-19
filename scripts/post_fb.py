@@ -32,7 +32,7 @@ BRANCH = "main"
 PAGE_ID = os.environ.get("FB_PAGE_ID", "")
 TOKEN = os.environ.get("FB_PAGE_TOKEN", "")
 API = "https://graph.facebook.com/v23.0"
-MAX_PER_DAY = 20
+MAX_PER_DAY = 10 ** 9  # NO DAILY CAP - posting continues at MIN_SPACING_MIN until the posting window closes
 MIN_SPACING_MIN = 40
 MAX_AGE_H = 72  # never post articles older than this many hours
 TAGS_BY_CAT = {
@@ -315,17 +315,17 @@ def post_photo(msg, img_bytes, url=None):
 
 
 def maybe_dispatch(state, today, dry, posted_this_run):
-    """Chain-fire the next run so posting continues until the daily quota is met.
+    """Chain-fire the next run so posting continues until the window closes.
 
     This replaces reliance on GitHub's drifting cron: each run starts the next
-    one when it finishes. Stops when: quota reached, outside the posting
-    window (05-21 UTC = 6am-10pm WAT), or 3 consecutive runs posted nothing.
+    one when it finishes. Stops when: outside the posting window
+    (05-21 UTC = 6am-10pm WAT), or 3 consecutive runs posted nothing.
     """
     if dry:
         return
     posted_today = state["days"].get(today, 0)
     if posted_today >= MAX_PER_DAY:
-        print("chain stop: daily quota reached"); return
+        print(f"chain stop: daily quota reached"); return
     h = datetime.now(timezone.utc).hour
     if not (5 <= h < 21):
         print("chain stop: outside posting window (05-21 UTC)"); return
