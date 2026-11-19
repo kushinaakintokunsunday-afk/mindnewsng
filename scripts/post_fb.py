@@ -64,10 +64,14 @@ def graph(path, data=None, method="GET"):
 
 def gh_get_raw(path):
     """Return decoded text content of a repo file (works for files >1MB), or None."""
-    out = subprocess.run(
-        ["gh", "api", f"repos/{REPO}/contents/{path}?ref={BRANCH}",
-         "-H", "Accept: application/vnd.github.raw"],
-        capture_output=True, text=True)
+    try:
+        out = subprocess.run(
+            ["gh", "api", f"repos/{REPO}/contents/{path}?ref={BRANCH}",
+             "-H", "Accept: application/vnd.github.raw"],
+            capture_output=True, text=True, timeout=180)
+    except subprocess.TimeoutExpired:
+        print(f"gh_get_raw timeout: {path}")
+        return None
     if out.returncode != 0 or not out.stdout:
         return None
     return out.stdout
@@ -75,9 +79,13 @@ def gh_get_raw(path):
 
 def gh_meta_sha(path):
     """Return the file's sha via Contents API metadata (content may be null)."""
-    out = subprocess.run(
-        ["gh", "api", f"repos/{REPO}/contents/{path}?ref={BRANCH}"],
-        capture_output=True, text=True)
+    try:
+        out = subprocess.run(
+            ["gh", "api", f"repos/{REPO}/contents/{path}?ref={BRANCH}"],
+            capture_output=True, text=True, timeout=90)
+    except subprocess.TimeoutExpired:
+        print(f"gh_meta_sha timeout: {path}")
+        return None
     try:
         return json.loads(out.stdout)["sha"]
     except Exception:
@@ -91,9 +99,14 @@ def gh_put_raw(path, content_bytes, message):
                "branch": BRANCH}
     if sha:
         payload["sha"] = sha
-    r = subprocess.run(
-        ["gh", "api", "--method", "PUT", f"repos/{REPO}/contents/{path}",
-         "--input", "-"], input=json.dumps(payload), text=True, capture_output=True)
+    try:
+        r = subprocess.run(
+            ["gh", "api", "--method", "PUT", f"repos/{REPO}/contents/{path}",
+             "--input", "-"], input=json.dumps(payload), text=True,
+            capture_output=True, timeout=180)
+    except subprocess.TimeoutExpired:
+        print(f"gh_put_raw timeout: {path}")
+        return False
     return r.returncode == 0
 
 
