@@ -277,7 +277,7 @@ def build_message(a):
     cat = a.get("category", "")
     tags = TAGS_BY_CAT.get(cat, "#NaijaNews #BreakingNews")
     # Link is NOT in the caption - it goes in the first comment (more reach).
-    msg = (f"\U0001f6a8 {title}\n\n"
+    msg = (f"\U0001f6a8 {title} .... - Check Below For Full Details\n\n"
            "\u2764\uFE0F LIKE | \U0001F4AC COMMENT | \U0001F501 SHARE\n"
            "\u2795 FOLLOW for daily updates\n" + tags + " #Mindnewsng")
     return msg
