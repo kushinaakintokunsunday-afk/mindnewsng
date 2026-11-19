@@ -460,7 +460,10 @@ def main():
             print(f"skip (already on page): {aid}")
             continue
         msg = build_message(a)
-        url = a.get("url", "")
+        # ALWAYS point at our own article page - never the source / Google News URL
+        slug = a.get("slug") or aid
+        url = (f"https://mindnewsng.com/articles/{slug}.html" if slug
+               else a.get("url", ""))
         # image: real photo stamped, fallback card
         img_bytes = None
         src = a.get("image") or ""
