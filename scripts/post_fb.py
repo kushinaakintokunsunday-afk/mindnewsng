@@ -286,8 +286,11 @@ def build_message(a):
 def post_photo(msg, img_bytes, url=None):
     """Single multipart call: image + text -> one post. Returns post_id."""
     import uuid
+    # Link always sits in the caption for now (comments are blocked by Meta
+    # #200). Once comments work we can drop this back to comment-only.
+    caption = msg if not url else msg + f"\n\n\U0001F449 Full story here: {url}"
     boundary = "----mindnewsng" + uuid.uuid4().hex
-    fields = {"access_token": TOKEN, "published": "true", "message": msg}
+    fields = {"access_token": TOKEN, "published": "true", "message": caption}
     parts = []
     for k, v in fields.items():
         parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"{k}\"\r\n\r\n{v}\r\n".encode())
@@ -306,15 +309,7 @@ def post_photo(msg, img_bytes, url=None):
                   data={"message": f"\U0001F449 Full story here: {url}"})
             print(f"  first comment posted on {post_id}")
         except Exception as e:
-            print(f"  first comment failed on {post_id}: {e}")
-            # Safety net: never leave a post without a link. If commenting is
-            # blocked (Meta #200), edit the caption to carry the link instead.
-            try:
-                graph(f"{post_id}",
-                      data={"message": msg + f"\n\n\U0001F449 Full story here: {url}"})
-                print(f"  fallback: link added to caption on {post_id}")
-            except Exception as e2:
-                print(f"  fallback caption edit failed on {post_id}: {e2}")
+            print(f"  first comment failed on {post_id}: {e} (link already in caption)")
     return post_id
 
 
