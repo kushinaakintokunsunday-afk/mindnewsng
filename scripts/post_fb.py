@@ -276,7 +276,8 @@ def build_message(a):
     url = a.get("url", "")
     cat = a.get("category", "")
     tags = TAGS_BY_CAT.get(cat, "#NaijaNews #BreakingNews")
-    # Link is NOT in the caption - it goes in the first comment (more reach).
+    # Link goes in the caption (post_photo appends it); the first comment is
+    # still attempted, and takes over automatically if Meta ever allows it.
     msg = (f"\U0001f6a8 {title} .... - Check Below For Full Details\n\n"
            "\u2764\uFE0F LIKE | \U0001F4AC COMMENT | \U0001F501 SHARE\n"
            "\u2795 FOLLOW for daily updates\n" + tags + " #Mindnewsng")
@@ -486,7 +487,7 @@ def main():
         if img_bytes is None:
             img_bytes = fallback_card(title)
         if dry:
-            print(f"--- DRY RUN: {aid}\nIMAGE: {'real+badge' if a.get('image') else 'card fallback'} ({len(img_bytes)//1024}KB)\n{msg}\nFIRST COMMENT: More details here: {url}\n")
+            print(f"--- DRY RUN: {aid}\nIMAGE: {'real+badge' if a.get('image') else 'card fallback'} ({len(img_bytes)//1024}KB)\n{msg}\n\n\U0001F449 Full story here: {url}\n")
             n += 1
             continue
         try:
