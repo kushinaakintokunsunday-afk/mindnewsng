@@ -551,6 +551,9 @@
   ],
   "four-dead-others-rescued-as-passenger-boat-conveying-funeral-guests-capsizes-in-": [
    "2026-11-20T19:29:24.138089+00:00"
+  ],
+  "many-feared-dead-as-overloaded-boat-capsizes-in-bayelsa": [
+   "2026-11-20T19:29:24.138089+00:00"
   ]
  },
  "days": {
@@ -558,7 +561,7 @@
   "2026-11-17": 9,
   "2026-11-18": 12,
   "2026-11-19": 36,
-  "2026-11-20": 107
+  "2026-11-20": 108
  },
  "last_ts": "2026-11-20T19:29:24.138089+00:00",
  "nogood": 0
