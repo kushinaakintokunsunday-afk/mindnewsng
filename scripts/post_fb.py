@@ -34,6 +34,14 @@ TOKEN = os.environ.get("FB_PAGE_TOKEN", "")
 API = "https://graph.facebook.com/v23.0"
 MAX_PER_DAY = 10 ** 9  # NO DAILY CAP - posting continues at MIN_SPACING_MIN until the posting window closes
 MIN_SPACING_MIN = 10  # user-set: interval between posts
+REAL_FALLBACK_IMAGES = {
+    "Politics": "https://images.unsplash.com/photo-1529107386315-e1c264d4b29e?auto=format&fit=crop&w=1600&q=80",
+    "World News": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1600&q=80",
+    "Sports": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1600&q=80",
+    "Health": "https://images.unsplash.com/photo-1512941937669-90a1b58e7e94?auto=format&fit=crop&w=1600&q=80",
+    "Money": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=80",
+    "News": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1600&q=80",
+}
 MAX_AGE_H = 72  # never post articles older than this many hours
 TAGS_BY_CAT = {
     "Jobs": "#JobsAbroad #Opportunity #Japa",
@@ -490,7 +498,12 @@ def main():
                     print(f"image load fail ({e}), retrying...")
                     time.sleep(3)
         if img_bytes is None:
-            img_bytes = fallback_card(title)
+            fb_src = REAL_FALLBACK_IMAGES.get((a.get("category") or "News"), REAL_FALLBACK_IMAGES["News"])
+            try:
+                img_bytes = stamp_badge(load_image(fb_src))
+                print(f"image: real fallback from {fb_src} for {aid}")
+            except Exception as e:
+                img_bytes = fallback_card(title)
         if dry:
             print(f"--- DRY RUN: {aid}\nIMAGE: {'real+badge' if a.get('image') else 'card fallback'} ({len(img_bytes)//1024}KB)\n{msg}\n\n\U0001F449 Full story here: {url}\n")
             n += 1
