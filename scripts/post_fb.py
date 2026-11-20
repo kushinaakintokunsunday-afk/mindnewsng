@@ -33,7 +33,7 @@ PAGE_ID = os.environ.get("FB_PAGE_ID", "")
 TOKEN = os.environ.get("FB_PAGE_TOKEN", "")
 API = "https://graph.facebook.com/v23.0"
 MAX_PER_DAY = 10 ** 9  # NO DAILY CAP - posting continues at MIN_SPACING_MIN until the posting window closes
-MIN_SPACING_MIN = 40
+MIN_SPACING_MIN = 10  # user-set: interval between posts
 MAX_AGE_H = 72  # never post articles older than this many hours
 TAGS_BY_CAT = {
     "Jobs": "#JobsAbroad #Opportunity #Japa",
