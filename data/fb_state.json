@@ -536,6 +536,9 @@
   ],
   "ukraine-strikes-kerch-bridge-as-putin-ally-declares-no-one-needs-europe": [
    "2026-11-20T18:57:58.716125+00:00"
+  ],
+  "four-transmission-lines-trip-in-16-minutes-disrupt-power-supply-nationwide": [
+   "2026-11-20T19:08:29.844856+00:00"
   ]
  },
  "days": {
@@ -543,8 +546,8 @@
   "2026-11-17": 9,
   "2026-11-18": 12,
   "2026-11-19": 36,
-  "2026-11-20": 102
+  "2026-11-20": 103
  },
- "last_ts": "2026-11-20T18:57:58.716125+00:00",
+ "last_ts": "2026-11-20T19:08:29.844856+00:00",
  "nogood": 0
 }
