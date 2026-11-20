@@ -419,6 +419,11 @@ def main():
             n += 1
             continue
         try:
+            if last_ts:
+                last_dt = datetime.fromisoformat(last_ts)
+                _delta = (now - last_dt).total_seconds() / 60
+                if _delta < spacing:
+                    now = last_dt + timedelta(minutes=spacing)
             pid = post_photo(msg, img_bytes, url=url)
             state["posted"][aid] = [now.isoformat()]
             state["days"][today] = posted_today + n + 1
@@ -491,6 +496,11 @@ def main():
             n += 1
             continue
         try:
+            if last_ts:
+                last_dt = datetime.fromisoformat(last_ts)
+                _delta = (now - last_dt).total_seconds() / 60
+                if _delta < spacing:
+                    now = last_dt + timedelta(minutes=spacing)
             post_id = post_photo(msg, img_bytes, url=url)
             state["posted"][aid] = [now.isoformat()]
             state["days"][today] = posted_today + n + 1
