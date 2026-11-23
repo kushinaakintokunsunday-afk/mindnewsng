@@ -1244,6 +1244,9 @@
   ],
   "ireland-announces-closure-of-foreign-worker-permit-applications-for-2-occupation": [
    "2026-11-23T17:38:31.188283+00:00"
+  ],
+  "japan-publishes-categories-of-people-who-cannot-apply-for-an-evisa": [
+   "2026-11-23T17:49:13.054026+00:00"
   ]
  },
  "days": {
@@ -1254,8 +1257,8 @@
   "2026-11-20": 126,
   "2026-11-21": 92,
   "2026-11-22": 94,
-  "2026-11-23": 26
+  "2026-11-23": 27
  },
- "last_ts": "2026-11-23T17:38:31.188283+00:00",
+ "last_ts": "2026-11-23T17:49:13.054026+00:00",
  "nogood": 0
 }
