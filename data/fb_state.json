@@ -1295,6 +1295,9 @@
   ],
   "fire-destroys-over-100-shops-at-kano-fish-market-traders-count-losses": [
    "2026-11-23T19:14:10.968203+00:00"
+  ],
+  "uk-digging-new-reservoirs-to-fight-persistent-droughts": [
+   "2026-11-23T19:14:10.968203+00:00"
   ]
  },
  "days": {
@@ -1305,7 +1308,7 @@
   "2026-11-20": 126,
   "2026-11-21": 92,
   "2026-11-22": 94,
-  "2026-11-23": 43
+  "2026-11-23": 44
  },
  "last_ts": "2026-11-23T19:14:10.968203+00:00",
  "nogood": 0
