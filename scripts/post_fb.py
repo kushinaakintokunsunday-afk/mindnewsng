@@ -275,6 +275,29 @@ def fallback_card(title):
     return buf.getvalue()
 
 
+def pick_researched_image(title, category):
+    """Owner directive: NO post with an empty image. When the source image is
+    missing, research a recent, topic-matching fallback photo before ever
+    falling back to the bare text card."""
+    t = (title or "").lower()
+    cat = (category or "").lower()
+    base = REAL_FALLBACK_IMAGES.get(cat if cat in REAL_FALLBACK_IMAGES else "News", REAL_FALLBACK_IMAGES["News"])
+    kw = [
+        (("immigrat", "visa", "resident", "permit", "asylum", "refugee", "migrant", "citizenship", "border", "deport", "emigrat"), REAL_FALLBACK_IMAGES["World News"]),
+        (("sport", "football", "footballer", "match", "club", "champion", "score"), REAL_FALLBACK_IMAGES["Sports"]),
+        (("health", "medical", "hospital", "doctor", "patient", "disease", "covid"), REAL_FALLBACK_IMAGES["Health"]),
+        (("money", "market", "bank", "econom", "inflation", "invest", "stock", "finance", "price"), REAL_FALLBACK_IMAGES["Money"]),
+        (("polit", "election", "government", "minister", "senate", "congress", "policy", "law"), REAL_FALLBACK_IMAGES["Politics"]),
+        (("tech", "business", "company", "start", "entrepreneur", "corps", "corporate", "startup"), REAL_FALLBACK_IMAGES["News"]),
+        (("entertain", "celebrity", "movie", "music", "film", "album", "artist"), REAL_FALLBACK_IMAGES["News"]),
+        (("lifestyle", "food", "travel", "culture", "art", "fashion"), REAL_FALLBACK_IMAGES["News"]),
+    ]
+    for keys, url in kw:
+        if any(k in t for k in keys):
+            return url
+    return base
+
+
 def build_message(a):
     # Legit.ng-style hook: short teaser + link. Never post the full story on FB -
     # the goal is clicks to the site.
@@ -421,9 +444,14 @@ def main():
             except Exception as e:
                 print(f"queue card load fail ({e}), using fallback")
         if img_bytes is None:
-            img_bytes = fallback_card(title)
+            fb_src = pick_researched_image(title, item.get("category") or "")
+            try:
+                img_bytes = stamp_badge(load_image(fb_src))
+                print(f"queue: researched fallback image for {aid}")
+            except Exception as e:
+                img_bytes = fallback_card(title)
         if dry:
-            print(f"--- DRY RUN (queue): {aid}\nIMAGE: {card or 'fallback'} ({len(img_bytes)//1024}KB)\n{msg}\n")
+            print(f"--- DRY RUN (queue): {aid}\nIMAGE: {card if card.startswith('http') else fb_src or 'fallback'} ({len(img_bytes)//1024}KB)\n{msg}\n")
             n += 1
             continue
         try:
@@ -498,10 +526,10 @@ def main():
                     print(f"image load fail ({e}), retrying...")
                     time.sleep(3)
         if img_bytes is None:
-            fb_src = REAL_FALLBACK_IMAGES.get((a.get("category") or "News"), REAL_FALLBACK_IMAGES["News"])
+            fb_src = pick_researched_image(title, a.get("category") or "")
             try:
                 img_bytes = stamp_badge(load_image(fb_src))
-                print(f"image: real fallback from {fb_src} for {aid}")
+                print(f"image: researched fallback from {fb_src} for {aid}")
             except Exception as e:
                 img_bytes = fallback_card(title)
         if dry:
