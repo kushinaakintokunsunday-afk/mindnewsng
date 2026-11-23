@@ -1232,6 +1232,9 @@
   ],
   "malta-permanent-residence-programme-financial-requirements-for-foreign-applicant": [
    "2026-11-23T17:17:04.574197+00:00"
+  ],
+  "malta-mentions-6-benefits-foreigners-enjoy-as-permanent-residents": [
+   "2026-11-23T17:27:40.443181+00:00"
   ]
  },
  "days": {
@@ -1242,8 +1245,8 @@
   "2026-11-20": 126,
   "2026-11-21": 92,
   "2026-11-22": 94,
-  "2026-11-23": 22
+  "2026-11-23": 23
  },
- "last_ts": "2026-11-23T17:17:04.574197+00:00",
+ "last_ts": "2026-11-23T17:27:40.443181+00:00",
  "nogood": 0
 }
