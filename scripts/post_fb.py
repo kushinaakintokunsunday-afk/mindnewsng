@@ -32,8 +32,9 @@ BRANCH = "main"
 PAGE_ID = os.environ.get("FB_PAGE_ID", "")
 TOKEN = os.environ.get("FB_PAGE_TOKEN", "")
 API = "https://graph.facebook.com/v23.0"
-MAX_PER_DAY = 10 ** 9  # NO DAILY CAP - posting continues at MIN_SPACING_MIN until the posting window closes
-MIN_SPACING_MIN = 10  # user-set: interval between posts
+MAX_PER_DAY = 10 ** 9  # NO DAILY CAP - posting continues at MIN_SPACING_MIN (day) / NIGHT_SPACING_MIN (night)
+MIN_SPACING_MIN = 10  # user-set: interval between posts (normal / morning-evening)
+NIGHT_SPACING_MIN = 40  # user-set: interval between posts at night (after 21:00 UTC)
 REAL_FALLBACK_IMAGES = {
     "Politics": "https://images.unsplash.com/photo-1529107386315-e1c264d4b29e?auto=format&fit=crop&w=1600&q=80",
     "World News": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1600&q=80",
@@ -349,8 +350,8 @@ def maybe_dispatch(state, today, dry, posted_this_run):
     """Chain-fire the next run so posting continues until the window closes.
 
     This replaces reliance on GitHub's drifting cron: each run starts the next
-    one when it finishes. Stops when: outside the posting window
-    (05-21 UTC = 6am-10pm WAT), or 3 consecutive runs posted nothing.
+    one when it finishes. Stops when: inside quiet hours (00-05 UTC), daily quota
+    reached, or 3 consecutive runs posted nothing.
     """
     if dry:
         return
@@ -358,8 +359,8 @@ def maybe_dispatch(state, today, dry, posted_this_run):
     if posted_today >= MAX_PER_DAY:
         print(f"chain stop: daily quota reached"); return
     h = datetime.now(timezone.utc).hour
-    if not (5 <= h < 21):
-        print("chain stop: outside posting window (05-21 UTC)"); return
+    if h < 5:
+        print("chain stop: quiet hours (00-05 UTC)"); return
     fails = int(state.get("nogood") or 0)
     if posted_this_run == 0:
         fails += 1
@@ -384,8 +385,13 @@ def main():
     if not dry and (not PAGE_ID or not TOKEN):
         print("FB_PAGE_ID / FB_PAGE_TOKEN missing"); sys.exit(1)
 
-    # spacing: default 40 min, temporarily overridable via data/fb_tuning.json
+    # spacing: default 10 min (normal), 40 min at night (after 21:00 UTC);
+    # temporarily overridable via data/fb_tuning.json
     spacing = MIN_SPACING_MIN
+    h_now = datetime.now(timezone.utc).hour
+    if h_now >= 21:
+        spacing = NIGHT_SPACING_MIN
+        print(f"spacing override: night mode -> {spacing} min")
     tune = fetch_tuning()
     try:
         n = int(tune.get("min_spacing_min") or 0)
