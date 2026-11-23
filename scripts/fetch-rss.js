@@ -36,7 +36,7 @@ const RSS_FEEDS = [
 
   // filtered by <source url> host in parseRSS below.
 
-  { source: 'Legit.ng',       category: 'News',        url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('site:legit.ng when:2d') + '&hl=en-NG&gl=NG&ceid=NG:en' },
+  { source: 'Legit.ng',       category: 'News',        url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('site:legit.ng when:2d (immigration OR visa OR residency OR permit OR citizenship OR foreign worker OR asylum OR refugee)') + '&hl=en-NG&gl=NG&ceid=NG:en' },
 
   { source: 'Vanguard',       category: 'News',        url: 'https://www.vanguardngr.com/feed/' },
 
@@ -51,6 +51,8 @@ const RSS_FEEDS = [
   { source: 'Blueprint',       category: 'News',        url: 'https://blueprint.ng/feed/' },
 
   { source: 'VeryNigerian',    category: 'News',        url: 'https://verynigerian.com/feed/' },
+
+  { source: 'Gambiaj',         category: 'News',        url: 'https://gambiaj.com/feed/' },
 
 
   // International sources relevant to Nigerians
