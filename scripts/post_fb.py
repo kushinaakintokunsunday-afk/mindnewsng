@@ -44,7 +44,6 @@ REAL_FALLBACK_IMAGES = {
     "News": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1600&q=80",
 }
 MAX_AGE_H = 72  # never post articles older than this many hours
-IMMIGRATION_MAX_AGE_H = 168  # user-set: extended window (7 days) for immigration/visa/residency stories
 TAGS_BY_CAT = {
     "Jobs": "#JobsAbroad #Opportunity #Japa",
     "Money": "#Money #Finance #NaijaMoney",
@@ -502,17 +501,11 @@ def main():
         # skip articles flagged manual (they go through the curated queue)
         if a.get("manual"):
             continue
-        # freshness: skip articles older than MAX_AGE_H hours; immigration/visa/
-        # residency stories get a longer window (IMMIGRATION_MAX_AGE_H) so the
-        # widened Legit + immigration feed keeps flowing to FB
+        # freshness: skip articles older than MAX_AGE_H hours
         try:
             adate = datetime.fromisoformat(a.get("date", "").replace("Z", "+00:00"))
             age_h = (now - adate).total_seconds() / 3600
-            lim = MAX_AGE_H
-            tlow = (a.get("title") or "").lower()
-            if any(k in tlow for k in ("immigrat", "visa", "resident", "permit", "asylum", "refugee", "migrant", "citizenship", "border")):
-                lim = IMMIGRATION_MAX_AGE_H
-            if age_h > lim:
+            if age_h > MAX_AGE_H:
                 print(f"skip (too old, {age_h:.0f}h): {aid}")
                 continue
         except Exception:
