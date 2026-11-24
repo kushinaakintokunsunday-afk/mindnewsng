@@ -3409,6 +3409,17 @@ function copyAssets() {
     }
   }
 
+  // Copy downloads/ (lead-magnet PDFs etc.)
+  const DL_DIR = path.join(ROOT, 'downloads');
+  if (fs.existsSync(DL_DIR)) {
+    const dest = path.join(OUT, 'downloads');
+    fs.mkdirSync(dest, { recursive: true });
+    for (const f of fs.readdirSync(DL_DIR)) {
+      const src = path.join(DL_DIR, f);
+      if (fs.statSync(src).isFile()) fs.copyFileSync(src, path.join(dest, f));
+    }
+  }
+
   console.log('  Copied assets (css, js, images, favicon)');
 
 }
