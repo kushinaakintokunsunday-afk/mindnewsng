@@ -466,7 +466,7 @@ def main():
         aid = item.get("id")
         if not aid:
             continue
-        if aid in state["posted"]:
+        if aid in state["posted"] and not item.get("force"):
             queue_remove(aid)
             continue
         msg = item.get("message", "")
