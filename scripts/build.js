@@ -1,1823 +1,3649 @@
 const fs = require('fs');
+
 const path = require('path');
 
+
+
 const ROOT = path.join(__dirname, '..');
+
 const DATA = path.join(ROOT, 'data', 'articles.json');
+
 const OUT = path.join(ROOT, 'public');
+
 const CSS_SRC = path.join(ROOT, 'css', 'styles.css');
+
 const JS_SRC = path.join(ROOT, 'js', 'main.js');
 
+
+
 const SITE = {
+
   name: 'Mindnewsng',
+
   tagline: 'Latest Nigeria News, Naija News and Breaking News Today',
+
   description: "Mindnewsng is your trusted Nigerian newspaper providing Breaking News, Latest News, Politics, Sport, Business, Entertainment and International headlines.",
+
   email: 'editor@mindnewsng.com',
+
   phone: '+234 800 000 0000',
+
   baseUrl: '/',
+
   url: 'https://mindnewsng.com',
+
   adsense: '',
+
   // Google Analytics 4 Measurement ID (looks like G-XXXXXXXXXX).
+
   // Create a free property at analytics.google.com and paste the ID here.
+
   ga4: 'G-Z66NKBHZFN',
+
 };
+
+
 
 const CATEGORIES = ['News', 'Politics', 'Entertainment', 'Sports', 'Money', 'Jobs & Education', 'Technology', 'Lifestyle', 'World News', 'Health', 'Guides'];
 
+
+
 // Tier-1 nav as displayed in the header (hierarchy: main first, "More" rest)
+
 const NAV_PRIMARY = ['Politics', 'Entertainment', 'Sports', 'Money', 'Jobs & Education', 'Technology', 'Lifestyle', 'World News', 'Health', 'Guides'];
 
+
+
 const NAV_ITEMS = [
+
   { label: 'Home', href: '../index.html' },
+
   ...NAV_PRIMARY.map(c => ({ label: c, href: `../pages/${slugify(c)}.html` })),
+
 ];
+
 const SECTION_COLORS = {
+
   Politics: '#000000',
+
   Entertainment: '#1f1f1f',
+
   Sports: '#333333',
+
   Money: '#4a4a4a',
+
   'Jobs & Education': '#5c5c5c',
+
   Technology: '#2c2c2c',
+
   Health: '#db0000',
+
   Lifestyle: '#3a3a3a',
+
   'World News': '#0f0f0f',
+
   News: '#111111',
+
   Guides: '#7a1f1f',
+
   Breaking: '#db0000',
+
   default: '#111111',
+
 };
 
+
+
 function getCatColor(cat) {
+
   return SECTION_COLORS[cat] || SECTION_COLORS.default;
+
 }
+
+
 
 function slugify(text) {
+
   return String(text || '')
+
     .toLowerCase()
+
     .normalize('NFKD').replace(/[^\w\s-]/g, '')
+
     .replace(/[\s_]+/g, '-')
+
     .replace(/&/g, 'and')
+
     .replace(/-+$/g, '');
+
 }
+
+
 
 // Normalize legacy category names into the Tier-1 structure
+
 function decodeHtml(str) {
+
   return String(str || '')
+
     .replace(/&amp;/g, '&')
+
     .replace(/&quot;/g, '"')
+
     .replace(/&#039;|&apos;/g, "'")
+
     .replace(/&lt;/g, '<')
+
     .replace(/&gt;/g, '>');
+
 }
+
+
 
 function normalizeCategory(cat) {
+
   const map = {
+
     Business: 'Money',
+
     Economy: 'Money',
+
     Jobs: 'Jobs & Education',
+
     Education: 'Jobs & Education',
+
     World: 'World News',
+
     'World News': 'World News',
+
     Celebrities: 'Entertainment',
+
     Guida: 'Guides',
+
     Guide: 'Guides',
+
     'South East': 'News',
+
     'South West': 'News',
+
     'North Central': 'News',
+
     'North East': 'News',
+
     'North West': 'News',
+
     'More News': 'News',
+
     'News Reports': 'News',
+
     'Headline Stories': 'News',
+
     Headlines: 'News',
+
     'Crime Watch': 'News',
+
     Headlines: 'News',
+
     Football: 'Sports',
+
     Foreign: 'World News',
+
     Contributors: 'News',
+
   };
+
   const clean = decodeHtml(cat);
+
   return map[clean] || clean || 'News';
+
 }
+
+
 
 function articleCategory(article) {
+
   return normalizeCategory(article.category);
+
 }
+
+
 
 function readingTime(article) {
+
   const body = sanitizeHtml(article.content || article.body || '');
+
   const text = `${article.title} ${article.description} ${body.replace(/<[^>]+>/g, ' ')}`;
+
   const words = text.split(/\s+/).filter(Boolean).length;
+
   return Math.max(1, Math.round(words / 200));
+
 }
+
+
 
 function getCatColor(cat) {
+
   return SECTION_COLORS[cat] || SECTION_COLORS.default;
+
 }
+
+
 
 function getArticles() {
+
   if (!fs.existsSync(DATA)) {
+
     console.error('data/articles.json not found. Run: npm run fetch');
+
     process.exit(1);
+
   }
+
   return JSON.parse(fs.readFileSync(DATA, 'utf-8'));
+
 }
+
+
 
 function formatDate(d) {
+
   const date = new Date(d);
+
   if (isNaN(date.getTime())) return 'Recently';
+
   const now = new Date();
+
   const diffMs = now - date;
+
   const diffM = Math.floor(diffMs / 60000);
+
   if (diffM < 1) return 'Just now';
+
   if (diffM < 60) return `${diffM}m ago`;
+
   const diffH = Math.floor(diffM / 60);
+
   if (diffH < 24) return `${diffH}h ago`;
+
   const diffD = Math.floor(diffH / 24);
+
   if (diffD < 7) return `${diffD}d ago`;
+
   return date.toLocaleDateString('en-NG', { year: 'numeric', month: 'short', day: 'numeric' });
+
 }
+
+
 
 function esc(str) {
+
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 }
+
+
 
 function placeholderImg(id, w = 600, h = 338) {
+
   return `https://placehold.co/${w}x${h}/111111/ffffff?text=Mindnewsng`;
+
 }
+
+
 
 // Category-branded placeholder for feeds that publish no article images.
+
 function articlePlaceholder(article, w = 600, h = 338) {
+
   const cat = articleCategory(article);
+
   const hex = (getCatColor(cat) || '#111111').replace('#', '');
+
   return `https://placehold.co/${w}x${h}/${hex}/ffffff?text=${encodeURIComponent(`Mindnewsng ${cat}`)}`;
+
 }
+
+
 
 function isSafeImageUrl(url) {
+
   if (!url) return false;
+
   if (!/^https?:/i.test(url)) return false;
+
   if (/youtube\.com|youtu\.be|youtube-nocookie\.com/i.test(url)) return false;
+
   if (/\[object/i.test(url)) return false;
+
   return true;
+
 }
+
+
 
 // First real image found inside an article body (feeds often embed the hero in content).
+
 function firstBodyImage(article) {
+
   const raw = article.content || article.body || '';
+
   const m = String(raw).match(/<img[^>]*src=["']([^"']+)["']/i);
+
   if (m && isSafeImageUrl(m[1])) return unescapeUrl(m[1]);
+
   // some feeds lazy-load with data-src or class lazy
+
   const ds = String(raw).match(/<img[^>]*data-src=["']([^"']+)["']/i);
+
   if (ds && isSafeImageUrl(ds[1])) return unescapeUrl(ds[1]);
+
   return null;
+
 }
+
+
 
 // RSS/XML escapes ampersands; the browser needs a real & in the src.
+
 function unescapeUrl(url) {
+
   if (!url) return url;
+
   return url.replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
+
 }
+
+
 
 // Safe article image: feed image, else first image in the body, else a themed placeholder.
+
 function articleImage(article, w = 600, h = 338) {
+
   const img = article.image || '';
+
   if (isSafeImageUrl(img)) return unescapeUrl(img);
+
   const bodyImg = firstBodyImage(article);
+
   if (bodyImg) return bodyImg;
+
   return articlePlaceholder(article, w, h);
+
 }
+
+
 
 // Sanitize RSS/feed HTML body before inlining it into article pages.
+
 // Keeps safe inline content, strips scripts/iframes/promotional widgets.
+
 function sanitizeHtml(html) {
+
   if (!html) return '';
+
   return String(html)
+
     .replace(/<script[\s\S]*?<\/script>/gi, '')
+
     .replace(/<style[\s\S]*?<\/style>/gi, '')
+
     .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+
     .replace(/<form[\s\S]*?<\/form>/gi, '')
+
     .replace(/<[^>]*on\w+="[^"]*"[^>]*>/gi, '')   // strip inline event handlers
+
     .replace(/javascript:/gi, '')
+
     .trim();
+
 }
+
+
 
 // Render the full article body from the feed's HTML content.
+
 // Falls back to a short "read more" call-to-action if no body was captured.
+
 function articleBody(article) {
+
   const raw = article.content || article.body || '';
+
   const html = sanitizeHtml(raw);
+
   const hasRealBody = html.replace(/<[^>]+>/g, '').trim().length > 60;
+
   if (!hasRealBody) {
+
     const sourceUrl = article.url && article.url !== '#' ? article.url : null;
+
     return `<p><em>This summary was compiled from <strong>${esc(article.source || 'the original source')}</strong>. ${sourceUrl ? `Read the full story <a href="${esc(sourceUrl)}" target="_blank" rel="noopener nofollow">here</a> for complete coverage.` : ''}</em></p>`;
+
   }
+
   // Strip leading <p>&nbsp;</p> noise and a first paragraph that duplicates the lead
+
   let body = html
+
     .replace(/^\s*<p>&nbsp;<\/p>/i, '')
+
     .replace(/^\s*<p>\s*<\/p>/i, '');
+
   if (article.description) {
+
     const leadStart = article.description.slice(0, 80).toLowerCase();
+
     body = body.replace(new RegExp(`<p[^>]*>${escRegex(leadStart)[0]}[\\s\\S]{0,400}?<\\/p>`, 'i'), '')
+
       .replace(/^\s*<p>&nbsp;<\/p>/i, '')
+
       .replace(/^\s*<p>\s*<\/p>/i, '');
+
   }
+
   return body;
+
 }
 
+
+
 function escRegex(str) {
+
   return [String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')];
+
 }
+
+
 
 // ─── SEO Helpers ──────────────────────────────────────────────────
 
+
+
 function absUrl(path) {
+
   return `${SITE.url}${path}`;
+
+}
+
+
+
+function cleanDescription(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&lt;[^&]*&gt;/g, ' ')
+    .replace(/https?:\/\/[^\s]+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 160);
 }
 
 function seoTags({ title, description, path, image, type = 'website' }) {
+
   const url = absUrl(path);
+
   const img = image || `${SITE.url}/images/og_default.jpg`;
+
   return `
+
     <meta name="description" content="${esc(description)}">
+
     <meta name="robots" content="index, follow, max-image-preview:large">
+
     <link rel="canonical" href="${url}">
+
     <meta property="og:type" content="${type}">
+
     <meta property="og:site_name" content="${esc(SITE.name)}">
+
     <meta property="og:title" content="${esc(title)}">
+
     <meta property="og:description" content="${esc(description)}">
+
     <meta property="og:url" content="${url}">
+
     <meta property="og:image" content="${img}">
+
     <meta property="og:locale" content="en_NG">
+
     <meta name="twitter:card" content="summary_large_image">
+
     <meta name="twitter:title" content="${esc(title)}">
+
     <meta name="twitter:description" content="${esc(description)}">
+
     <meta name="twitter:image" content="${img}">`;
+
 }
+
+
 
 function orgSchema() {
+
   return `<script type="application/ld+json">
+
 {
+
   "@context": "https://schema.org",
+
   "@type": "NewsMediaOrganization",
+
   "@id": "${SITE.url}/#org",
+
   "name": "${esc(SITE.name)}",
+
   "url": "${SITE.url}",
+
   "description": "${esc(SITE.description)}",
+
   "email": "${SITE.email}"
+
 }</script>`;
+
 }
+
+
 
 function newsArticleSchema(article, cat) {
+
   const img = articleImage(article, 1200, 630);
+  const finalImg = /placehold\.co/.test(img) ? `${SITE.url}/images/og_default.jpg` : img;
+
   const pubDate = new Date(article.date).toISOString();
+
   const author = cleanAuthorName(article);
+
   const authorUrl = absUrl(`/authors/${slugify(author)}.html`);
+
   const pageUrl = absUrl(`/articles/${article.slug}.html`);
+
   const data = {
+
     '@context': 'https://schema.org',
+
     '@type': 'NewsArticle',
+
     headline: article.title,
-    description: article.description,
-    image: [img],
+
+    description: cleanDescription(article.description),
+
+    image: [finalImg],
+
     datePublished: pubDate,
+
     dateModified: pubDate,
+
     articleSection: cat,
+
     inLanguage: 'en',
+
     mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+
     author: { '@type': 'Person', name: author, url: authorUrl },
+
     publisher: { '@id': `${SITE.url}/#org` },
+
     sourceOrganization: { '@type': 'Organization', name: article.source },
+
   };
+
   return `<script type="application/ld+json">${JSON.stringify(data)}</script>`;
+
 }
+
+
 
 function breadcrumbSchema(items) {
+
   const list = items.map((it, i) => ({
+
     '@type': 'ListItem',
+
     position: i + 1,
+
     name: it.label,
-    item: it.href ? absUrl(it.href) : undefined,
+
+    item: it.href ? absUrl(it.href.replace(/^\.\.\//, '/')) : undefined,
+
   })).filter(i => i.item);
+
   return `<script type="application/ld+json">
+
 {
+
   "@context": "https://schema.org",
+
   "@type": "BreadcrumbList",
+
   "itemListElement": ${JSON.stringify(list)}
+
 }</script>`;
+
 }
+
+
 
 function authorSchema(author, articles) {
+
   const data = {
+
     '@context': 'https://schema.org',
+
     '@type': 'Person',
+
     name: author,
+
     url: absUrl(`/authors/${slugify(author)}.html`),
+
     jobTitle: 'Journalist',
+
     worksFor: { '@id': `${SITE.url}/#org` },
+
     description: `Author of ${articles.length} article(s) published on Mindnewsng.`,
+
   };
+
   return `<script type="application/ld+json">${JSON.stringify(data)}</script>`;
+
 }
+
+
 
 function sortNewest(articles) {
+
   return [...articles].sort((a, b) => new Date(b.date) - new Date(a.date));
+
 }
+
+
 
 // Normalize messy feed bylines into clean journalist names (mirrors fetch-rss).
+
 // Byline policy: feed-fetched stories credit their original source; our own articles use the Mindnewsng byline.
+
 function cleanAuthorName(article) {
+
   if (article && article.manual) return 'Mindnewsng';
+
   const src = String((article && (article.source || article.author)) || '').trim();
+
   if (!src || /google news/i.test(src)) return 'Mindnewsng';
+
   return src;
+
 }
 
+
+
 function authorsNames(articles) {
+
   const merged = {};
+
   for (const a of articles) {
+
     const name = cleanAuthorName(a);
+
     merged[name] = true;
+
   }
+
   return Object.keys(merged);
+
 }
+
+
 
 // ─── HTML Templates ───────────────────────────────────────────────
 
+
+
 function header(activePage = 'Home', articles = []) {
+
   const linksHtml = NAV_ITEMS.map(item => {
+
     const isActive = item.label === activePage;
+
     return `<li><a href="${item.href}"${isActive ? ' class="active"' : ''}>${item.label}</a></li>`;
+
   }).join('\n');
+
   const tickerItems = sortNewest(articles).slice(0, 3)
+
     .map(a => `<a href="../articles/${a.slug}.html">${esc(a.title)}</a>`)
+
     .join('\n            <span>&#9679;</span>\n            ');
 
+
+
   return `<a class="skip-link" href="#main-content">Skip to content</a>
+
     <header class="site-header">
+
         <div class="header-top">
+
             <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
+
                 <span class="burger-line"></span>
+
                 <span class="burger-line"></span>
+
                 <span class="burger-line"></span>
+
             </button>
+
             <a href="../index.html" class="site-logo"><img src="../images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+
             <button class="search-btn" id="searchBtn" aria-label="Search">
+
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+
             </button>
+
         </div>
+
         <nav class="main-nav" id="mainNav">
+
             <ul>${linksHtml}
+
             </ul>
+
         </nav>
+
         <div class="search-overlay" id="searchOverlay">
+
             <div class="search-overlay-inner">
+
                 <form id="searchForm" class="search-form">
+
                     <input type="text" id="searchInput" placeholder="Search news..." autocomplete="off">
+
                     <button type="submit" aria-label="Search">
+
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+
                     </button>
+
                 </form>
+
                 <div class="search-results" id="searchResults"></div>
+
                 <button class="search-close" id="searchClose" aria-label="Close">&times;</button>
+
             </div>
+
         </div>
+
     </header>
+
     <div class="ticker">
+
         <div class="ticker-label">BREAKING</div>
+
         <div class="ticker-track"><div class="ticker-content">
+
             <span class="ticker-live-dot"></span>
+
             ${tickerItems}
+
         </div></div>
+
     </div>
+
     <div class="ebook-strip">
+
         <div class="container ebook-strip-inner">
+
             <span class="ebook-strip-text">&#128214; <strong>New:</strong> Small Business Prompt Pack &mdash; ready-made AI prompts to get your first 100 customers.</span>
+
             <a href="../store.html" class="ebook-strip-cta">Get it on the Store &rarr;</a>
+
         </div>
+
     </div>`;
+
 }
+
+
 
 function footer() {
+
   return `
+
     <footer class="site-footer">
+
         <div class="footer-top"><div class="container footer-inner">
+
             <div class="footer-col footer-about">
+
                 <a href="${absUrl('/')}" class="footer-logo">Mind<span>news</span>ng</a>
+
                 <p>Mindnewsng is Nigeria's trusted source for breaking news, politics, entertainment, sports, business and more.</p>
+
             </div>
+
             <div class="footer-col">
+
                 <h4>Categories</h4>
+
                 <ul>${CATEGORIES.map(c => `<li><a href="${absUrl(`/pages/${slugify(c)}.html`)}">${c}</a></li>`).join('\n')}</ul>
+
             </div>
+
             <div class="footer-col">
+
                 <h4>Company</h4>
+
                 <ul>
+
                     <li><a href="${absUrl('/about.html')}">About Us</a></li>
+
                     <li><a href="${absUrl('/contact.html')}">Contact Us</a></li>
+
                     <li><a href="${absUrl('/store.html')}">🛒 Store &ndash; Ebooks &amp; Guides</a></li>
+
                     <li><a href="${absUrl('/editorial-policy.html')}">Editorial Policy</a></li>
+
                     <li><a href="${absUrl('/authors/index.html')}">Our Journalists</a></li>
+
                     <li><a href="${absUrl('/privacy.html')}">Privacy Policy</a></li>
+
                     <li><a href="${absUrl('/terms.html')}">Terms of Service</a></li>
+
                 </ul>
+
             </div>
+
             <div class="footer-col footer-social">
+
                 <h4>Follow Us</h4>
+
                 <p class="footer-contact">
+
                     <a href="mailto:${SITE.email}">${SITE.email}</a>
+
                 </p>
+
                 <p class="footer-social-links">
+
                     <a href="https://flipboard.com/@KUSHINAAKIN370a" target="_blank" rel="noopener">📰 Follow on Flipboard</a>
+
                 </p>
+
             </div>
+
         </div></div>
+
         <div class="footer-bottom"><div class="container">
+
             <p>&copy; ${new Date().getFullYear()} Mindnewsng. All rights reserved.</p>
+
         </div></div>
+
     </footer>`;
+
 }
+
+
 
 function backToTopBtn() {
+
   return `<button class="back-to-top" id="backToTop" aria-label="Back to top">&uarr;</button>`;
+
 }
+
+
 
 function adsenseScript() {
+
   if (!SITE.adsense) return '';
+
   return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(SITE.adsense)}" crossorigin="anonymous"></script>`;
+
 }
+
+
 
 function analyticsScript() {
+
   const id = (SITE.ga4 || '').trim();
+
   if (!/^G-[A-Z0-9]{6,}$/.test(id)) return ''; // unset or placeholder - skip snippet
+
   return `
+
     <script async src="https://www.googletagmanager.com/gtag/js?id=${esc(id)}"></script>
+
     <script>
+
       window.dataLayer = window.dataLayer || [];
+
       function gtag(){dataLayer.push(arguments);}
+
       gtag('js', new Date());
+
       gtag('config', '${esc(id)}');
+
     </script>`;
+
 }
+
+
 
 function adBlock(size = '728x90') {
+
   // AdSense-ready: set SITE.adsense to "ca-pub-XXXX" to serve real ads.
+
   if (SITE.adsense) {
+
     const dims = size.split('x').map(Number);
+
     return `<div class="ad"><span class="ad-label">Advertisement</span><ins class="adsbygoogle" style="display:inline-block;width:${dims[0]}px;height:${dims[1]}px" data-ad-client="${esc(SITE.adsense)}" data-ad-slot="${size.replace('x', '').padEnd(5, '0')}" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>`;
+
   }
+
   return `<div class="ad"><span class="ad-label">Advertisement</span><div class="ad-placeholder">Ad Space ${size}</div></div>`;
+
 }
+
+
 
 function articleCard(article, size = 'full') {
+
   const cat = articleCategory(article);
+
   const img = articleImage(article);
+
   const href = `../articles/${article.slug}.html`;
+
   const read = readingTime(article);
+
   return `
+
     <a href="${href}" class="card ${size === 'thumb' ? 'card-horizontal' : 'article-card'}">
+
         <div class="news-img ${size === 'thumb' ? 'thumb' : 'ratio-16x9'}">
+
             <img src="${esc(img)}" alt="${esc(article.title)}" width="600" height="338" loading="lazy"
+
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+
             <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+
         </div>
+
         <span class="category-tag" style="--cat-color:${getCatColor(cat)}">${esc(cat)}</span>
+
         <h3 class="headline">${esc(article.title)}</h3>
+
         <div class="card-info">
+
             <span class="info-category">${esc(cat)}</span>
+
             <span class="info-author">By ${esc(cleanAuthorName(article))}</span>
+
             <span class="info-time">${formatDate(article.date)}</span>
+
             <span class="info-read">${read} min read</span>
+
         </div>
+
     </a>`;
+
 }
+
+
 
 function trendingItem(article, index) {
+
   const href = `../articles/${article.slug}.html`;
+
   return `
+
     <a href="${href}" class="card trending-item">
+
         <span class="trending-number">${index + 1}</span>
+
         <h3 class="headline-sm">${esc(article.title)}</h3>
+
     </a>`;
+
 }
 
+
+
 function featuredCard(article, imgW = 300, imgH = 169) {
+
   const cat = articleCategory(article);
+
   const img = articleImage(article, imgW, imgH);
+
   return `
+
     <a href="articles/${article.slug}.html" class="card featured-card">
+
         <div class="news-img ratio-16x9">
+
             <img src="${esc(img)}" alt="${esc(article.title)}" width="${imgW}" height="${imgH}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+
             <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+
         </div>
+
         <span class="category-tag">${esc(cat)}</span>
+
         <h3 class="headline">${esc(article.title)}</h3>
+
         <div class="card-info"><span class="info-time">${formatDate(article.date)}</span><span class="info-read">${readingTime(article)} min read</span></div>
+
     </a>`;
+
 }
+
+
 
 // ─── Page Builders ────────────────────────────────────────────────
 
+
+
 function buildSeoPages(articles) {
+
   const now = new Date().toUTCString();
+
   const latest = articles.slice(0, 50);
 
+
+
   // Site RSS feed
+
   const rss = `<?xml version="1.0" encoding="UTF-8"?>
+
 <rss version="2.0">
+
   <channel>
+
     <title>${esc(SITE.name)} - ${esc(SITE.tagline)}</title>
+
     <link>${SITE.url}/</link>
+
     <description>${esc(SITE.description)}</description>
+
     <language>en</language>
+
     <lastBuildDate>${now}</lastBuildDate>
+
     ${latest.map(a => {
+
       const img = articleImage(a, 800, 450);
+
       const body = sanitizeHtml(a.content || a.body || '');
+
       const desc = body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 500) || a.description;
+
       return `
+
     <item>
+
       <title>${esc(a.title)}</title>
+
       <link>${SITE.url}/articles/${a.slug}.html</link>
+
       <guid isPermaLink="true">${SITE.url}/articles/${a.slug}.html</guid>
+
       <description>${esc(desc)}</description>
+
       <category>${esc(articleCategory(a))}</category>
+
       <enclosure url="${esc(img)}" type="image/jpeg" length="0"/>
+
       <pubDate>${new Date(a.date).toUTCString()}</pubDate>
+
     </item>`;
+
     }).join('\n')}
+
   </channel>
+
 </rss>`;
 
+
+
   // Sitemap
+
   const urls = [
+
     '/', '/about.html', '/contact.html', '/privacy.html', '/terms.html', '/editorial-policy.html', '/authors/index.html',
+
     ...CATEGORIES.map(c => `/pages/${slugify(c)}.html`),
+
     ...articles.map(a => `/articles/${a.slug}.html`),
+
     ...authorsNames(articles).map(name => `/authors/${slugify(name)}.html`),
+
   ];
+
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
   ${urls.map(u => `
+
   <url><loc>${SITE.url}${u}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>`).join('\n')}
+
 </urlset>`;
+
+
 
   fs.writeFileSync(path.join(OUT, 'rss.xml'), rss);
+
   fs.writeFileSync(path.join(OUT, 'sitemap.xml'), sitemap);
 
+
+
   // Google News sitemap: articles from the last 48 hours only (news crawler)
+
   const xesc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+
   const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+
   const newsArts = articles.filter(a => {
+
     const t = new Date(a.date).getTime();
+
     return !isNaN(t) && t >= cutoff;
+
   }).slice(0, 1000);
+
   const newsSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+
   ${newsArts.map(a => `
+
   <url>
+
     <loc>${SITE.url}/articles/${a.slug}.html</loc>
+
     <news:news>
+
       <news:publication>
+
         <news:name>${xesc(SITE.name)}</news:name>
+
         <news:language>en</news:language>
+
       </news:publication>
+
       <news:publication_date>${new Date(a.date).toISOString()}</news:publication_date>
+
       <news:title>${xesc(a.title)}</news:title>
+
     </news:news>
+
   </url>`).join('\n')}
+
 </urlset>`;
+
   fs.writeFileSync(path.join(OUT, 'news-sitemap.xml'), newsSitemap);
 
+
+
   fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE.url}/sitemap.xml\nSitemap: ${SITE.url}/news-sitemap.xml`);
+
+  // Slim search index (lazy-loaded by site search) — keeps __ARTICLES__ out of every page
+  fs.mkdirSync(path.join(OUT, 'data'), { recursive: true });
+  const searchIndex = articles.map(a => ({ id: a.id, title: a.title, slug: a.slug, category: articleCategory(a) }));
+  fs.writeFileSync(path.join(OUT, 'data', 'articles-index.json'), JSON.stringify(searchIndex));
+
   if (SITE.adsense) {
+
     fs.writeFileSync(path.join(OUT, 'ads.txt'), `google.com, ${SITE.adsense.replace('ca-pub-', '')}, DIRECT, f08c47fec0942fa0\n`);
+
   } else {
+
     const sample = 'google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0';
+
     fs.writeFileSync(path.join(OUT, 'ads.txt'), '# Remove the # below to enable AdSense ads\n' + sample + '\n');
+
   }
+
   console.log(`  Built: rss.xml, sitemap.xml, news-sitemap.xml (${newsArts.length} fresh), robots.txt, ads.txt`);
+
 }
+
+
 
 function buildIndex(articles) {
+
   const normalized = articles.map(a => ({ ...a, category: articleCategory(a) }));
+
   const recent = normalized.slice(0, 40);
+
   const hero1 = recent[0];
+
   const hero2 = recent[1] || recent[0];
+
   const latest = recent.slice(0, 6);
+
   const featured = recent.slice(6, 10);
+
   const trending = recent.slice(10, 15);
+
   const mostShared = recent.slice(4, 10);
+
   const editorsPicks = recent.slice(15, 21);
 
+
+
   const guidesArticles = normalized.filter(a => articleCategory(a) === 'Guides');
+
   const everPool = [...normalized.filter(a => articleCategory(a) === 'Lifestyle'), ...normalized];
+
   const guidesFallback = everPool.slice(8, 12);
 
+
+
   const blockArticles = (cat, n) => normalized.filter(a => articleCategory(a) === cat).slice(0, n);
+
   const politicsArticles = blockArticles('Politics', 3);
+
   const entArticles = blockArticles('Entertainment', 3);
+
   const sportsArticles = blockArticles('Sports', 3);
+
   const moneyArticles = blockArticles('Money', 4);
+
   const jobsArticles = blockArticles('Jobs & Education', 3);
 
+
+
   const html = `<!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>${SITE.name} - ${SITE.tagline}</title>
+
     ${seoTags({ title: `${SITE.name} - ${SITE.tagline}`, description: SITE.description, path: '/', type: 'website' })}
+
     <meta name="theme-color" content="#db0000">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+
     ${adsenseScript()}
+
     ${analyticsScript()}
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="icon" href="favicon.ico">
+
     <link rel="stylesheet" href="css/styles.css">
+
     ${orgSchema()}
+
 </head>
+
 <body>
+
     <a class="skip-link" href="#main-content">Skip to content</a>
+
     <header class="site-header">
+
         <div class="header-top">
+
             <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
+
                 <span class="burger-line"></span>
+
                 <span class="burger-line"></span>
+
                 <span class="burger-line"></span>
+
             </button>
+
 <h1 class="site-logo"><a href="index.html"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a></h1>
+
             <button class="search-btn" id="searchBtn" aria-label="Search">
+
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+
             </button>
+
         </div>
+
         <nav class="main-nav" id="mainNav">
+
             <ul>
+
                 <li><a href="index.html" class="active">Home</a></li>
+
                 ${NAV_PRIMARY.map(c => `<li><a href="pages/${slugify(c)}.html">${c}</a></li>`).join('\n')}
+
             </ul>
+
         </nav>
+
         <div class="search-overlay" id="searchOverlay">
+
             <div class="search-overlay-inner">
+
                 <form id="searchForm" class="search-form">
+
                     <input type="text" id="searchInput" placeholder="Search news..." autocomplete="off">
+
                     <button type="submit" aria-label="Search">
+
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+
                     </button>
+
                 </form>
+
                 <div class="search-results" id="searchResults"></div>
+
                 <button class="search-close" id="searchClose" aria-label="Close">&times;</button>
+
             </div>
+
         </div>
+
     </header>
 
+
+
     <div class="ticker">
+
         <div class="ticker-label">BREAKING</div>
+
         <div class="ticker-track"><div class="ticker-content">
+
             <span class="ticker-live-dot"></span>
+
             ${latest.slice(0, 3).map(a => `<a href="articles/${a.slug}.html">${esc(a.title)}</a>`).join('<span>&#9679;</span>\n')}
+
         </div></div>
+
     </div>
+
     <div class="ebook-strip">
+
         <div class="container ebook-strip-inner">
+
             <span class="ebook-strip-text">&#128214; <strong>New:</strong> Small Business Prompt Pack &mdash; ready-made AI prompts to get your first 100 customers.</span>
+
             <a href="store.html" class="ebook-strip-cta">Get it on the Store &rarr;</a>
+
         </div>
+
     </div>
+
+
 
     <main id="main-content" class="container">
+
         ${adBlock('728x90')}
+
+
 
         <!-- BREAKING -->
+
         <section class="breaking-row">
+
             <div class="breaking-badge">BREAKING</div>
+
             <a href="articles/${hero1.slug}.html" class="breaking-link">${esc(hero1.title)}</a>
+
             <span class="breaking-time">${formatDate(hero1.date)}</span>
+
         </section>
+
+
 
         <!-- LATEST / HERO -->
+
         <section class="hero-section">
+
             <div class="hero-main">
+
                 <a href="articles/${hero1.slug}.html" class="card card-main">
+
                     <div class="news-img ratio-16x9">
+
                         <img src="${esc(articleImage(hero1, 800, 450))}" alt="${esc(hero1.title)}" width="800" height="450" fetchpriority="high" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+
                         <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+
                     </div>
+
                     <span class="category-tag">${esc(articleCategory(hero1))}</span>
+
                     <h2 class="headline-main">${esc(hero1.title)}</h2>
+
                     <p class="desc">${esc(hero1.description)}</p>
+
                     <div class="card-info">
+
                         <span class="info-category">${esc(articleCategory(hero1))}</span>
+
                         <span class="info-author">By ${esc(cleanAuthorName(hero1))}</span>
+
                         <span class="info-time">${formatDate(hero1.date)}</span>
+
                         <span class="info-read">${readingTime(hero1)} min read</span>
+
                     </div>
+
                 </a>
+
             </div>
+
             <div class="hero-main-wrapper">
+
                 <a href="articles/${hero2.slug}.html" class="card card-main">
+
                     <div class="news-img ratio-16x9">
+
                         <img src="${esc(articleImage(hero2, 400, 225))}" alt="${esc(hero2.title)}" width="400" height="225" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+
                         <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+
                     </div>
+
                     <span class="category-tag">${esc(articleCategory(hero2))}</span>
+
                     <h2 class="headline-main">${esc(hero2.title)}</h2>
+
                     <div class="card-info">
+
                         <span class="info-category">${esc(articleCategory(hero2))}</span>
+
                         <span class="info-author">By ${esc(cleanAuthorName(hero2))}</span>
+
                         <span class="info-time">${formatDate(hero2.date)}</span>
+
                         <span class="info-read">${readingTime(hero2)} min read</span>
+
                     </div>
+
                 </a>
+
             </div>
+
         </section>
+
+
 
         <div class="hero-grid">
+
             <div class="hero-left">
+
                 ${latest.slice(0, 3).map(a => `
+
                 <a href="articles/${a.slug}.html" class="card card-horizontal">
+
                     <div class="news-img thumb">
+
                         <img src="${esc(articleImage(a, 120, 80))}" alt="${esc(a.title)}" width="120" height="80" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+
                         <div class="img-fallback" style="display:none">M</div>
+
                     </div>
+
                     <h3 class="headline-sm">${esc(a.title)}</h3>
+
                     <div class="card-info"><span class="info-time">${formatDate(a.date)}</span><span class="info-read">${readingTime(a)} min</span></div>
+
                 </a>`).join('\n')}
+
             </div>
+
             <div class="hero-right">
+
                 ${latest.slice(3, 6).map(a => `
+
                 <a href="articles/${a.slug}.html" class="card card-horizontal">
+
                     <div class="news-img thumb">
+
                         <img src="${esc(articleImage(a, 120, 80))}" alt="${esc(a.title)}" width="120" height="80" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+
                         <div class="img-fallback" style="display:none">M</div>
+
                     </div>
+
                     <h3 class="headline-sm">${esc(a.title)}</h3>
+
                     <div class="card-info"><span class="info-time">${formatDate(a.date)}</span><span class="info-read">${readingTime(a)} min</span></div>
+
                 </a>`).join('\n')}
+
             </div>
+
         </div>
+
+
 
         <!-- LATEST NEWS -->
+
         <div class="section-headline">
+
             <h2 class="section-title">Latest News</h2>
+
             <a href="pages/news.html" class="section-link">More Latest &rarr;</a>
+
         </div>
+
         <section class="featured-collection">
+
             ${featured.map(a => featuredCard(a)).join('\n')}
+
         </section>
+
+
 
         <!-- MOST SHARED -->
+
         <div class="section-headline">
+
             <h2 class="section-title">Top Stories</h2>
+
         </div>
+
         <div class="shared-grid">
+
             ${mostShared.map((a, i) => {
+
               const cat = articleCategory(a);
+
               return `
+
               <a href="articles/${a.slug}.html" class="card shared-card">
+
                   <span class="shared-rank">${i + 1}</span>
+
                   <div class="news-img ratio-16x9">
+
                       <img src="${esc(articleImage(a, 200, 120))}" alt="${esc(a.title)}" width="200" height="120" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+
                       <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+
                   </div>
+
                   <h3 class="headline-sm">${esc(a.title)}</h3>
+
                   <div class="card-info"><span class="info-time">${formatDate(a.date)}</span></div>
+
               </a>`;
+
             }).join('\n')}
+
         </div>
+
+
 
         <!-- GUIDES & TOP LISTS -->
+
         <div class="section-headline">
+
             <h2 class="section-title">Guides &amp; Top Lists</h2>
+
             <a href="pages/guides.html" class="section-link">More Guides &rarr;</a>
+
         </div>
+
         <section class="featured-collection">
+
             ${(guidesArticles.length ? guidesArticles : guidesFallback).slice(0, 4).map(a => featuredCard(a)).join('\n')}
+
         </section>
+
+
 
         <div class="two-column">
+
             <div class="main-column">
+
                 ${renderCategoryBlock('Politics', politicsArticles)}
+
                 ${adBlock('300x250')}
+
                 ${renderCategoryBlock('Entertainment', entArticles)}
+
                 ${adBlock('300x250')}
+
                 ${renderCategoryBlock('Sports', sportsArticles)}
+
                 ${adBlock('300x250')}
+
                 ${renderCategoryBlock('Money', moneyArticles)}
+
             </div>
+
             <aside class="sidebar">
+
                 ${adBlock('300x250')}
+
                 <div class="section-headline sidebar-headline"><h2 class="section-title">Trending Now</h2></div>
+
                 <div class="trending-list">
+
                     ${trending.map((a, i) => trendingItem(a, i)).join('\n')}
+
                 </div>
+
                 ${adBlock('300x250')}
+
                 <div class="section-headline sidebar-headline"><h2 class="section-title">Most Read</h2></div>
+
                 <div class="trending-list">
+
                     ${mostShared.slice(0, 5).map((a, i) => trendingItem(a, i)).join('\n')}
+
                 </div>
+
                 <div class="newsletter-box">
+
                     <h3>Get the latest news in your inbox</h3>
+
                     <p>Subscribe to Mindnewsng for daily updates.</p>
+
                     <form id="newsletterForm" class="newsletter-form">
+
                         <input type="email" id="newsletterEmail" placeholder="Your email address" required>
+
                         <button type="submit" class="btn">Subscribe</button>
+
                     </form>
+
                     <p class="form-msg" id="newsletterMsg"></p>
+
                 </div>
+
             </aside>
+
         </div>
+
+
 
         ${(jobsArticles.length ? `
+
         <div class="section-headline">
+
             <h2 class="section-title">Jobs &amp; Education</h2>
+
             <a href="pages/jobs-education.html" class="section-link">More &rarr;</a>
+
         </div>
+
         <section class="featured-collection">
+
             ${jobsArticles.map(a => featuredCard(a)).join('\n')}
+
         </section>` : '')}
 
+
+
         <!-- FEATURED EBOOKS -->
+
         <div class="section-headline">
+
             <h2 class="section-title">Featured Ebooks</h2>
+
             <a href="store.html" class="section-link">Visit Store &rarr;</a>
+
         </div>
+
         <section class="featured-ebooks">
+
             <a href="rooted-praying.html" class="fe-card">
+
                 <img src="images/cover_rooted.png" alt="Rooted &amp; Praying cover" loading="lazy">
+
                 <div class="fe-body">
+
                     <span class="store-badge">New</span>
+
                     <h3>Rooted &amp; Praying &ndash; Christian Parenting Guide</h3>
+
                     <p>Scripture, prayer and calm answers for 18 digital-age parenting situations.</p>
+
                     <span class="fe-cta">Get it &rarr;</span>
+
                 </div>
+
             </a>
+
             <a href="store.html" class="fe-card">
+
                 <img src="images/cover_smallbusiness.jpg" alt="Small Business Prompt Pack" loading="lazy">
+
                 <div class="fe-body">
+
                     <span class="store-badge">Best for starters</span>
+
                     <h3>Small Business Prompt Pack</h3>
+
                     <p>Ready-made AI prompts to find customers and market your small business.</p>
+
                     <span class="fe-cta">Get it &rarr;</span>
+
                 </div>
+
             </a>
+
             <a href="tiktok-viral-prompt-pack.html" class="fe-card">
+
                 <img src="images/cover_tiktok.jpg" alt="TikTok Viral Prompt Pack" loading="lazy">
+
                 <div class="fe-body">
+
                     <span class="store-badge">50% off</span>
+
                     <h3>TikTok Viral Prompt Pack</h3>
+
                     <p>Hooks, captions and video ideas engineered for the TikTok algorithm.</p>
+
                     <span class="fe-cta">Get it &rarr;</span>
+
                 </div>
+
             </a>
+
             <a href="store.html" class="fe-card">
+
                 <img src="images/cover_youtube.jpg" alt="YouTube Starter Prompt Pack" loading="lazy">
+
                 <div class="fe-body">
+
                     <span class="store-badge">50% off</span>
+
                     <h3>YouTube Starter Prompt Pack</h3>
+
                     <p>Titles, thumbnails and scripts to reach your first 1,000 subscribers.</p>
+
                     <span class="fe-cta">Get it &rarr;</span>
+
                 </div>
+
             </a>
+
         </section>
+
+
 
         <!-- EDITORS' PICKS -->
+
         <div class="section-headline">
+
             <h2 class="section-title">Editor's Picks</h2>
+
         </div>
+
         <section class="featured-collection">
+
             ${editorsPicks.map(a => featuredCard(a)).join('\n')}
+
         </section>
 
+
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="js/main.js"></script>
-    <script>
-      window.__ARTICLES__ = ${JSON.stringify(normalized.map(a => ({ id: a.id, title: a.title, slug: a.slug, category: a.category })))};
-    </script>
+
 </body>
+
 </html>`;
 
+
+
   fs.mkdirSync(OUT, { recursive: true });
+
   fs.writeFileSync(path.join(OUT, 'index.html'), html);
+
   console.log('  Built: index.html');
+
 }
+
+
 
 function renderCategoryBlock(category, articles) {
+
   if (!articles.length) return '';
+
   const slug = slugify(category);
+
   return `
+
     <div class="section-headline">
+
         <h2 class="section-title">${category}</h2>
+
         <a href="pages/${slug}.html" class="section-link">View All &rarr;</a>
+
     </div>
+
     <div class="article-column">
+
         ${articles.map(a => articleCard(a, 'full')).join('\n')}
+
     </div>`;
+
 }
 
+
+
 function buildCategoryPage(category, articles) {
+
   const slug = slugify(category);
+
   const catArticles = articles.filter(a => articleCategory(a) === category);
+
   const allArticles = catArticles.length ? catArticles : articles;
+
   const topTitles = catArticles.slice(0, 3).map(a => a.title);
+
   const desc = catArticles.length
+
     ? `Latest ${category.toLowerCase()} news in Nigeria: ${topTitles.join('. ')}. Get ${category.toLowerCase()} updates from Mindnewsng.`
+
     : `${category} news from Mindnewsng.`;
+
   const crumbs = [
+
     { label: 'Home', href: '../index.html' },
+
     { label: category },
+
   ];
 
+
+
   const html = `<!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>${category} - ${SITE.name}</title>
+
     ${seoTags({
+
       title: `${category} News - ${SITE.name}`,
+
       description: desc,
+
       path: `/pages/${slug}.html`,
+
       type: 'website',
+
     })}
+
     <meta name="theme-color" content="#db0000">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
+
     ${adsenseScript()}
+
     ${analyticsScript()}
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="icon" href="../favicon.ico">
+
     <link rel="stylesheet" href="../css/styles.css">
+
     ${orgSchema()}
+
     ${breadcrumbSchema(crumbs)}
+
 </head>
+
 <body>
+
     ${header(category, catArticles)}
+
     <main id="main-content" class="container page-category">
+
         <div class="page-hero">
+
             <h1>${category} News</h1>
+
             <p>Latest ${category.toLowerCase()} news and updates from Nigeria and around the world</p>
+
         </div>
+
+
 
         ${adBlock('728x90')}
 
+
+
         <div class="two-column">
+
             <div class="main-column">
+
                 <div class="article-column">
+
                     ${allArticles.slice(0, 15).map(a => articleCard(a, 'full')).join('\n')}
+
                 </div>
+
                 ${allArticles.length > 15 ? '<div class="load-more-wrap"><button class="btn load-more" onclick="this.textContent=\'Loading...\';setTimeout(()=>this.textContent=\'No more articles\',1500)">Load More</button></div>' : ''}
+
             </div>
+
             <aside class="sidebar">
+
                 ${adBlock('300x250')}
+
                 <div class="section-headline sidebar-headline"><h2 class="section-title">Trending</h2></div>
+
                 <div class="trending-list">
+
                     ${allArticles.slice(0, 5).map((a, i) => trendingItem(a, i)).join('\n')}
+
                 </div>
+
                 ${adBlock('300x250')}
+
                 <div class="newsletter-box">
+
                     <h3>Stay Updated</h3>
+
                     <p>Get ${category.toLowerCase()} news in your inbox.</p>
+
                     <form id="newsletterForm" class="newsletter-form">
+
                         <input type="email" placeholder="Your email" required>
+
                         <button type="submit" class="btn">Subscribe</button>
+
                     </form>
+
                     <p class="form-msg" id="newsletterMsg"></p>
+
                 </div>
+
             </aside>
+
         </div>
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="../js/main.js"></script>
-    <script>
-      window.__ARTICLES__ = ${JSON.stringify(articles.map(a => ({ id: a.id, title: a.title, slug: a.slug, category: a.category })))};
-    </script>
+
 </body>
+
 </html>`;
 
+
+
   fs.mkdirSync(path.join(OUT, 'pages'), { recursive: true });
+
   fs.writeFileSync(path.join(OUT, 'pages', `${slug}.html`), html);
+
   console.log(`  Built: pages/${slug}.html`);
+
 }
 
+
+
 function buildArticlePage(article, allArticles) {
+
   const cat = articleCategory(article);
+
   const related = allArticles
+
     .filter(a => a.id !== article.id && articleCategory(a) === cat)
-    .slice(0, 4);
+
+    .slice(0, 8);
+
+
 
   const breadcrumbs = [
+
     { label: 'Home', href: '../index.html' },
+
     { label: cat, href: `../pages/${slugify(cat)}.html` },
+
     { label: article.title },
+
   ];
 
+
+
   const html = `<!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>${esc(article.title)} - ${SITE.name}</title>
+
     ${seoTags({
+
       title: `${article.title} - ${SITE.name}`,
-      description: article.description,
+
+      description: cleanDescription(article.description),
+
       path: `/articles/${article.slug}.html`,
+
       type: 'article',
-      image: articleImage(article, 1200, 630),
+
+      image: isSafeImageUrl(article.image) ? articleImage(article, 1200, 630) : undefined,
+
     })}
+
     <meta name="theme-color" content="#db0000">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
+
     ${adsenseScript()}
+
     ${analyticsScript()}
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="icon" href="../favicon.ico">
+
     <link rel="stylesheet" href="../css/styles.css">
+
     ${orgSchema()}
+
     ${breadcrumbSchema(breadcrumbs)}
+
     ${newsArticleSchema(article, cat)}
+
 </head>
+
 <body>
+
     ${header(cat, allArticles)}
+
     <main id="main-content" class="container page-article">
+
         <nav class="breadcrumb" aria-label="Breadcrumb">
+
             ${breadcrumbs.map((b, i) => b.href
+
               ? `<a href="${b.href}">${esc(b.label)}</a><span class="sep">/</span>`
+
               : `<span class="current">${esc(b.label)}</span>`
+
             ).join('\n')}
+
         </nav>
 
+
+
         <article class="article-content">
+
             <header class="article-header">
+
                 <span class="category-tag" style="--cat-color:${getCatColor(cat)}">${esc(cat)}</span>
+
                 <h1>${esc(article.title)}</h1>
+
                 <div class="article-meta">
+
                     <span class="meta-author">By <a href="../authors/${slugify(cleanAuthorName(article))}.html" class="author-link">${esc(cleanAuthorName(article))}</a></span>
+
                     <span class="meta-source">${esc(article.source)}</span>
+
                     <span class="meta-date">${formatDate(article.date)}</span>
+
                     <span class="meta-read">${readingTime(article)} min read</span>
+
                 </div>
+
             </header>
 
+
+
             <div class="article-featured-img">
+
                 <img src="${esc(articleImage(article, 800, 450))}" alt="${esc(article.title)}" width="800" height="450" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+
                 <div class="img-fallback article-img-fb" style="display:none">MINDNEWSNG</div>
+
             </div>
+
             ${article.source ? `<div class="photo-credit">Photo: ${esc(article.source)}</div>` : ''}
 
+
+
             <div class="article-body">
+
                 <p class="lead">${esc(article.description)}</p>
+
                 ${articleBody(article)}
+
             </div>
+
+
 
             <div class="article-share">
+
                 <span>Share this story:</span>
+
                 <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}" target="_blank" rel="noopener" class="share-btn share-x">X</a>
+
                 <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(article.url)}" target="_blank" rel="noopener" class="share-btn share-fb">FB</a>
+
                 <a href="https://wa.me/?text=${encodeURIComponent(article.title + ' ' + article.url)}" target="_blank" rel="noopener" class="share-btn share-wa">WA</a>
+
             </div>
 
+
+
             <div class="ebook-promo">
+
                 <img src="../images/cover_rooted.png" alt="Rooted &amp; Praying &mdash; Christian Parenting Guide" loading="lazy">
+
                 <div class="ebook-promo-body">
+
                     <span class="store-badge">New &ndash; Featured Ebook</span>
+
                     <h3>Rooted &amp; Praying &mdash; The Christian Parenting Guide for the Digital Age</h3>
+
                     <p>Scripture, prayer and calm answers for 18 digital-age parenting situations &mdash; now with a launch discount.</p>
+
                     <a href="../rooted-praying.html" class="buy-btn ebook-promo-btn">View the Book &rarr;</a>
+
                 </div>
+
             </div>
+
+
 
             ${adBlock('300x250')}
 
+
+
             <section class="related-articles">
+
                 <h2>Related Articles</h2>
+
                 <div class="related-grid">
+
                     ${related.map(a => `
+
                     <a href="${a.slug}.html" class="card article-card">
+
                         <div class="news-img ratio-16x9">
+
                             <img src="${esc(articleImage(a, 300, 169))}" alt="${esc(a.title)}" width="300" height="169" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+
                             <div class="img-fallback" style="display:none">MINDNEWSNG</div>
+
                         </div>
+
                         <span class="category-tag">${esc(articleCategory(a))}</span>
+
                         <h3 class="headline">${esc(a.title)}</h3>
+
                         <div class="card-info"><span class="info-time">${formatDate(a.date)}</span></div>
+
                     </a>`).join('\n')}
+
                 </div>
+
             </section>
+
         </article>
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="../js/main.js"></script>
-    <script>window.__ARTICLES__ = ${JSON.stringify(allArticles.map(a => ({ id: a.id, title: a.title, slug: a.slug, category: a.category })))};</script>
+
 </body>
+
 </html>`;
 
+
+
   fs.mkdirSync(path.join(OUT, 'articles'), { recursive: true });
+
   fs.writeFileSync(path.join(OUT, 'articles', `${article.slug}.html`), html);
+
 }
+
+
 
 function buildAuthorPages(articles) {
+
   const byAuthor = {};
+
   for (const a of articles) {
+
     const name = cleanAuthorName(a);
+
     (byAuthor[name] = byAuthor[name] || []).push(a);
+
   }
+
+
 
   const authorNames = Object.keys(byAuthor);
+
   const FALLBACK = 'Mindnewsng Staff';
+
   if (authorNames.includes(FALLBACK) && byAuthor[FALLBACK].length) {
+
     // Merge all RSS-feed authors into the editorial staff page so no author is orphaned
+
     const staff = byAuthor[FALLBACK] || [];
+
     for (const [name, list] of Object.entries(byAuthor)) {
+
       if (name !== FALLBACK && /BBC|Punch|Al Jazeera|Vanguard|Channels|Premium|France/i.test(name)) {
+
         byAuthor[FALLBACK] = staff.concat(list);
+
         delete byAuthor[name];
+
       }
+
     }
+
   }
+
+
 
   fs.mkdirSync(path.join(OUT, 'authors'), { recursive: true });
+
   let authored = 0;
 
+
+
   // Journalist directory (all author pages in one place)
+
   const dirPage = `<!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Our Journalists - ${SITE.name}</title>
+
     ${seoTags({ title: `Our Journalists - ${SITE.name}`, description: `Meet the journalists reporting for ${SITE.name}. Read articles by our named reporters and editorial team.`, path: '/authors/index.html' })}
+
     <meta name="theme-color" content="#db0000">
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
+
     ${adsenseScript()}
+
     ${analyticsScript()}
+
     <link rel="icon" href="../favicon.ico">
+
     <link rel="stylesheet" href="../css/styles.css">
+
     ${orgSchema()}
+
 </head>
+
 <body>
+
     <a class="skip-link" href="#main-content">Skip to content</a>
+
     <header class="site-header">
+
         <div class="header-top">
+
             <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
+
                 <span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span>
+
             </button>
+
             <a href="../index.html" class="site-logo"><img src="../images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+
             <button class="search-btn" id="searchBtn" aria-label="Search">
+
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+
             </button>
+
         </div>
+
         <nav class="main-nav" id="mainNav"><ul>${NAV_ITEMS.map(i => `<li><a href="${i.href}">${i.label}</a></li>`).join('\n')}</ul></nav>
+
         <div class="search-overlay" id="searchOverlay">
+
             <div class="search-overlay-inner">
+
                 <form id="searchForm" class="search-form">
+
                     <input type="text" id="searchInput" placeholder="Search news..." autocomplete="off">
+
                     <button type="submit" aria-label="Search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+
                 </form>
+
                 <div class="search-results" id="searchResults"></div>
+
                 <button class="search-close" id="searchClose" aria-label="Close">&times;</button>
+
             </div>
+
         </div>
+
     </header>
+
     <main id="main-content" class="container page-category">
+
         <div class="page-hero">
+
             <h1>Our Journalists</h1>
+
             <p>Meet the reporters and editorial team behind ${SITE.name}</p>
+
         </div>
+
         <div class="author-grid">
+
             ${Object.keys(byAuthor).sort().map(name => `
+
             <a href="${slugify(name)}.html" class="author-card">
+
                 <div class="author-avatar">${esc(name.split(' ').map(w => w[0]).slice(0, 2).join(''))}</div>
+
                 <h3>${esc(name)}</h3>
+
                 <p>${byAuthor[name].length} article${byAuthor[name].length === 1 ? '' : 's'}</p>
+
             </a>`).join('\n')}
+
         </div>
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="../js/main.js"></script>
+
 </body></html>`;
+
   fs.writeFileSync(path.join(OUT, 'authors', 'index.html'), dirPage);
 
+
+
   for (const [name, list] of Object.entries(byAuthor)) {
+
     const slug = slugify(name);
+
     const sorted = sortNewest(list);
+
     const desc = `${name} is a journalist at Mindnewsng covering ${sorted[0] ? articleCategory(sorted[0]).toLowerCase() : 'news'} and more. Read ${name}'s latest articles.`;
+
     const html = `<!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>${esc(name)} - Author profile - ${SITE.name}</title>
+
     ${seoTags({ title: `${name} - ${SITE.name}`, description: desc, path: `/authors/${slug}.html`, type: 'profile' })}
+
     <meta name="theme-color" content="#db0000">
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="../rss.xml">
+
     ${adsenseScript()}
+
     ${analyticsScript()}
+
     <link rel="icon" href="../favicon.ico">
+
     <link rel="stylesheet" href="../css/styles.css">
+
     ${orgSchema()}
+
     ${authorSchema(name, list)}
+
 </head>
+
 <body>
+
     <a class="skip-link" href="#main-content">Skip to content</a>
+
     <header class="site-header">
+
         <div class="header-top">
+
             <button class="burger-btn" id="burgerBtn" aria-label="Open menu">
+
                 <span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span>
+
             </button>
+
             <a href="../index.html" class="site-logo"><img src="../images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+
             <button class="search-btn" id="searchBtn" aria-label="Search">
+
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+
             </button>
+
         </div>
+
         <nav class="main-nav" id="mainNav"><ul>${NAV_ITEMS.map(i => `<li><a href="${i.href}">${i.label}</a></li>`).join('\n')}</ul></nav>
+
         <div class="search-overlay" id="searchOverlay">
+
             <div class="search-overlay-inner">
+
                 <form id="searchForm" class="search-form">
+
                     <input type="text" id="searchInput" placeholder="Search news..." autocomplete="off">
+
                     <button type="submit" aria-label="Search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+
                 </form>
+
                 <div class="search-results" id="searchResults"></div>
+
                 <button class="search-close" id="searchClose" aria-label="Close">&times;</button>
+
             </div>
+
         </div>
+
     </header>
+
     <main id="main-content" class="container page-category">
+
         <div class="page-hero author-hero">
+
             <div class="author-avatar">${esc(name.split(' ').map(w => w[0]).slice(0, 2).join(''))}</div>
+
             <div>
+
                 <h1>${esc(name)}</h1>
+
                 <p>Journalist at ${SITE.name} &middot; ${sorted.length} article${sorted.length === 1 ? '' : 's'}</p>
+
             </div>
+
         </div>
+
         <div class="two-column">
+
             <div class="main-column">
+
                 <div class="section-headline"><h2 class="section-title">Latest by ${esc(name)}</h2></div>
+
                 <div class="article-column">
+
                     ${sorted.map(a => articleCard(a, 'full')).join('\n')}
+
                 </div>
+
             </div>
+
             <aside class="sidebar">
+
                 ${adBlock('300x250')}
+
                 <div class="section-headline sidebar-headline"><h2 class="section-title">Trending Now</h2></div>
+
                 <div class="trending-list">
+
                     ${articles.slice(0, 5).map((a, i) => trendingItem(a, i)).join('\n')}
+
                 </div>
+
             </aside>
+
         </div>
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="../js/main.js"></script>
+
 </body></html>`;
+
     fs.writeFileSync(path.join(OUT, 'authors', `${slug}.html`), html);
+
     authored++;
+
   }
+
   console.log(`  Built: ${authored} author pages`);
+
 }
+
+
 
 function buildStaticPages() {
+
   const about = `<!DOCTYPE html>
+
 <html lang="en"><head>
+
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>About - ${SITE.name}</title>
+
     <meta name="description" content="About Mindnewsng - a Nigerian digital newspaper delivering accurate, timely breaking news, politics, business, sports and world news.">
+
     <meta name="robots" content="index, follow">
+
     <meta name="theme-color" content="#db0000">
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+
     ${adsenseScript()}
+
     ${analyticsScript()}
+
     <link rel="icon" href="favicon.ico">
+
     <link rel="stylesheet" href="css/styles.css">
+
 </head><body>
+
     <a class="skip-link" href="#main-content">Skip to content</a>
+
     <header class="site-header"><div class="header-top">
+
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
+
         <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+
     </div></header>
+
     <main id="main-content" class="container page-static">
+
         <h1>About Mindnewsng</h1>
+
         <p>Mindnewsng (mindnewsng.com) is a Nigerian digital newspaper delivering breaking news, politics, business, sports, entertainment, jobs and education, technology, health and world news to Nigerian readers at home and in the diaspora.</p>
+
         <p>We publish fast, verified summaries of the day's most important stories, drawing on trusted national and international news wires, and we always credit the originating outlet. Where we report allegations or unverified claims, we say so clearly and link to the full source.</p>
+
         <h2>Our Mission</h2>
+
         <p>To keep Nigerians informed with news that is accurate, balanced and independent &mdash; delivered quickly, in clear language, and free to read.</p>
+
         <h2>What Makes Us Different</h2>
+
         <ul>
+
             <li><strong>Speed with standards.</strong> Stories are published as events unfold, but every report is checked and attributed before it goes live.</li>
+
             <li><strong>Reader-first format.</strong> Our social posts link back to full stories here, so the complete picture is always on our own site.</li>
+
             <li><strong>Independence.</strong> Editorial decisions are not influenced by advertisers or political interests. Sponsored content, where it ever appears, is clearly labelled.</li>
+
         </ul>
+
         <h2>How We Work</h2>
+
         <p>Our newsroom combines automated monitoring of trusted feeds with human editors who select, verify and frame each story. Sensitive topics &mdash; deaths, crime, court cases and allegations &mdash; are handled with extra care and carry clear disclaimers.</p>
+
         <p>Read more in our <a href="editorial-policy.html">Editorial Policy</a>.</p>
+
         <h2>Get In Touch</h2>
+
         <p>Email: <a href="mailto:${SITE.email}">${SITE.email}</a> &mdash; we welcome story tips, corrections and partnership enquiries. See our <a href="contact.html">Contact page</a> for details.</p>
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="js/main.js"></script>
+
 </body></html>`;
+
+
 
   const contact = `<!DOCTYPE html>
+
 <html lang="en"><head>
+
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Contact - ${SITE.name}</title>
+
     <meta name="description" content="Contact Mindnewsng - story tips, corrections, advertising enquiries and ebook store support. We respond within 24 hours.">
+
     <meta name="robots" content="index, follow">
+
     <meta name="theme-color" content="#db0000">
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+
     ${adsenseScript()}
+
     ${analyticsScript()}
+
     <link rel="icon" href="favicon.ico">
+
     <link rel="stylesheet" href="css/styles.css">
+
 </head><body>
+
     <a class="skip-link" href="#main-content">Skip to content</a>
+
     <header class="site-header"><div class="header-top">
+
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
+
         <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+
     </div></header>
+
     <main id="main-content" class="container page-static">
+
         <h1>Contact Us</h1>
+
         <p>We read every message. Reach out on any of the topics below and we will respond within 24 hours (usually much sooner).</p>
+
         <h2>General &amp; Story Tips</h2>
+
         <p>Seen something newsworthy? Email <a href="mailto:${SITE.email}">${SITE.email}</a> with as much detail as possible &mdash; what happened, where, when, and any photos or documents you can share. We protect the identity of sources on request.</p>
+
         <h2>Corrections</h2>
+
         <p>Accuracy matters more than pride. Email <a href="mailto:${SITE.email}">${SITE.email}</a> with the subject line <strong>"Correction"</strong>, including the article link and what is wrong. Confirmed errors are fixed promptly and transparently.</p>
+
         <h2>Advertising &amp; Partnerships</h2>
+
         <p>For sponsored content, banner placements and partnerships, write to <a href="mailto:${SITE.email}">${SITE.email}</a> with the subject line <strong>"Advertising"</strong>.</p>
+
         <h2>Ebook Store Support</h2>
+
         <p>Purchased a guide and need help with your download or payment? Email <a href="mailto:${SITE.email}">${SITE.email}</a> with the subject line <strong>"Store Support"</strong> and we will resolve it within one business day.</p>
+
         <h2>Social Media</h2>
+
         <p>You can also reach us on our Facebook page <strong>Mindnewsng</strong> &mdash; send us a message there for quick questions.</p>
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="js/main.js"></script>
+
 </body></html>`;
+
+
 
   const privacy = `<!DOCTYPE html>
+
 <html lang="en"><head>
+
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Privacy Policy - ${SITE.name}</title>
+
     <meta name="description" content="How Mindnewsng collects, uses and protects your data, including cookies, Google AdSense advertising and your rights.">
+
     <meta name="robots" content="index, follow">
+
     <meta name="theme-color" content="#db0000">
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+
     ${adsenseScript()}
+
     ${analyticsScript()}
+
     <link rel="icon" href="favicon.ico">
+
     <link rel="stylesheet" href="css/styles.css">
+
 </head><body>
+
     <a class="skip-link" href="#main-content">Skip to content</a>
+
     <header class="site-header"><div class="header-top">
+
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
+
         <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+
     </div></header>
+
     <main id="main-content" class="container page-static">
+
         <h1>Privacy Policy</h1>
+
         <p>Last updated: November 2026. This Privacy Policy explains how Mindnewsng ("we", "us", "our") collects, uses and protects information when you visit mindnewsng.com.</p>
+
         <h2>Information We Collect</h2>
+
         <ul>
+
             <li><strong>Automatically collected data:</strong> when you browse the site, our servers and analytics tools collect standard log data such as your IP address, browser type, device type, pages visited, time spent and referring website. This is used in aggregate to understand traffic and improve the site.</li>
+
             <li><strong>Information you give us:</strong> if you contact us by email or subscribe to a newsletter, we receive the name and email address you provide. We use it only to reply to you or send you the content you requested.</li>
+
             <li><strong>Cookies and similar technologies:</strong> small files stored on your device that help the site function, remember preferences and measure performance.</li>
+
         </ul>
+
         <h2>Advertising &amp; Third-Party Vendors</h2>
+
         <p>We may display advertising on the site, including ads served by <strong>Google AdSense</strong>.</p>
+
         <ul>
+
             <li>Third-party vendors, including Google, use cookies to serve ads based on your prior visits to this and other websites.</li>
+
             <li>Google's use of advertising cookies enables it and its partners to serve ads to you based on your visit to our site and/or other sites on the Internet.</li>
+
             <li>You may opt out of personalised advertising by visiting <strong>Google Ads Settings</strong> (adssettings.google.com) or opt out of a third-party vendor's use of cookies for personalised advertising at <strong>aboutads.info/choices</strong>.</li>
+
         </ul>
+
         <h2>Analytics</h2>
+
         <p>We use Google Analytics to understand how visitors use the site. Google Analytics uses cookies to collect information such as pages visited and time on site in anonymised form. You can review Google's privacy practices at policies.google.com/privacy.</p>
+
         <h2>How We Use Data</h2>
+
         <p>We use collected data to operate and improve the website, measure audience, respond to enquiries, deliver newsletters you subscribe to, and display relevant advertising. We do <strong>not</strong> sell your personal information to third parties.</p>
+
         <h2>Data Retention &amp; Security</h2>
+
         <p>We keep personal data only as long as needed for the purposes above, and we apply reasonable technical measures to protect it. No internet transmission is ever 100% secure, but we treat your data with care.</p>
+
         <h2>Your Rights</h2>
+
         <p>You may request access to, correction of, or deletion of the personal data we hold about you by emailing <a href="mailto:${SITE.email}">${SITE.email}</a>. Nigerian residents may also refer to the Nigeria Data Protection Act 2023. You can control or delete cookies through your browser settings at any time.</p>
+
         <h2>Children's Privacy</h2>
+
         <p>Our site is not directed at children under 13, and we do not knowingly collect personal information from children.</p>
+
         <h2>External Links</h2>
+
         <p>Our articles and store link to third-party websites (for example, partner news outlets and our ebook checkout). We are not responsible for the privacy practices of those sites.</p>
+
         <h2>Changes To This Policy</h2>
+
         <p>We may update this policy as the site evolves. The "Last updated" date above will always reflect the current version.</p>
+
         <h2>Contact</h2>
+
         <p>Questions about privacy? Email <a href="mailto:${SITE.email}">${SITE.email}</a>.</p>
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="js/main.js"></script>
+
 </body></html>`;
+
+
 
   const terms = `<!DOCTYPE html>
+
 <html lang="en"><head>
+
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Terms of Service - ${SITE.name}</title>
+
     <meta name="description" content="Terms of use for mindnewsng.com - content licensing, disclaimers, ebook purchases via Selar and governing law.">
+
     <meta name="robots" content="index, follow">
+
     <meta name="theme-color" content="#db0000">
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+
     ${adsenseScript()}
+
     ${analyticsScript()}
+
     <link rel="icon" href="favicon.ico">
+
     <link rel="stylesheet" href="css/styles.css">
+
 </head><body>
+
     <a class="skip-link" href="#main-content">Skip to content</a>
+
     <header class="site-header"><div class="header-top">
+
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
+
         <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+
     </div></header>
+
     <main id="main-content" class="container page-static">
+
         <h1>Terms of Service</h1>
+
         <p>Last updated: November 2026. By accessing or using mindnewsng.com you agree to these Terms. If you do not agree, please do not use the site.</p>
+
         <h2>The Service</h2>
+
         <p>Mindnewsng is a news publication. We publish original reporting, summaries and references to stories from partner news wires and national publications, always with attribution to the originating outlet. Content is provided for general informational purposes and does not constitute professional advice (legal, financial, medical or otherwise).</p>
+
         <h2>Intellectual Property</h2>
+
         <p>All content on Mindnewsng &mdash; text, design, logos and branding &mdash; is protected by copyright and may not be reproduced, redistributed or republished without written permission, except for short quotations with clear attribution and a link back to the original page. Third-party headlines, images and excerpts remain the property of their respective owners and are used with attribution.</p>
+
         <h2>Accuracy &amp; Disclaimers</h2>
+
         <p>We work hard to report accurately, but news develops quickly. Content is provided "as is" without warranties of any kind. Where a story involves allegations, court proceedings or unverified claims, we present them as such and link to sources; nothing on this site should be read as a finding of guilt against any person.</p>
+
         <h2>User Contributions</h2>
+
         <p>If you email us a tip, comment or material, you grant us a non-exclusive right to use, edit and publish it (with or without attribution, as agreed with you). You must not send unlawful, defamatory or infringing content.</p>
+
         <h2>Ebook Purchases</h2>
+
         <p>Digital products in our store (guides and prompt packs) are sold through our secure checkout partner, Selar. Payments are processed by Selar; we receive confirmation of purchase and provide support for delivery issues. Because products are digital downloads delivered instantly, all sales are final once the file has been downloaded, except where required by law. Contact <a href="mailto:${SITE.email}">${SITE.email}</a> for any purchase issue.</p>
+
         <h2>Advertising &amp; Third-Party Links</h2>
+
         <p>The site may display advertising and links to external websites. We are not responsible for the content, products or practices of third parties. Advertisements are clearly distinguishable from editorial content.</p>
+
         <h2>Limitation of Liability</h2>
+
         <p>To the maximum extent permitted by law, Mindnewsng and its operators shall not be liable for any indirect or consequential loss arising from your use of the site or reliance on its content.</p>
+
         <h2>Governing Law</h2>
+
         <p>These Terms are governed by the laws of the Federal Republic of Nigeria.</p>
+
         <h2>Changes</h2>
+
         <p>We may update these Terms from time to time; the "Last updated" date will reflect the current version. Continued use of the site constitutes acceptance of the updated Terms.</p>
+
         <h2>Contact</h2>
+
         <p>Questions about these Terms? Email <a href="mailto:${SITE.email}">${SITE.email}</a>.</p>
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="js/main.js"></script>
+
 </body></html>`;
+
+
 
   const editorial = `<!DOCTYPE html>
+
 <html lang="en"><head>
+
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Editorial Policy - ${SITE.name}</title>
+
     ${seoTags({ title: `Editorial Policy - ${SITE.name}`, description: 'How Mindnewsng gathers, verifies, corrects and publishes news. Our editorial standards, ethics and corrections process.', path: '/editorial-policy.html' })}
+
     <meta name="theme-color" content="#db0000">
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+
     ${adsenseScript()}
+
     ${analyticsScript()}
+
     <link rel="icon" href="favicon.ico">
+
     <link rel="stylesheet" href="css/styles.css">
+
     ${orgSchema()}
+
 </head><body>
+
     <a class="skip-link" href="#main-content">Skip to content</a>
+
     <header class="site-header"><div class="header-top">
+
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
+
         <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+
     </div></header>
+
     <main id="main-content" class="container page-static">
+
         <h1>Editorial Policy</h1>
+
         <p>Mindnewsng is committed to truthful, fair and independent journalism in service of the Nigerian public. Our editorial standards are simple and non-negotiable.</p>
+
         <h2>Accuracy and Verification</h2>
+
         <p>We strive to report accurately. Each story is checked before publication, and where information cannot be independently verified we say so and attribute the information to its source.</p>
+
         <h2>Attribution</h2>
+
         <p>We clearly credit our sources. Articles sourced from our partner news wires and national publications carry the name of the originating outlet. Our own reporting is attributed to our named journalists.</p>
+
         <h2>Corrections</h2>
+
         <p>When we get something wrong, we correct it promptly and transparently. Readers can request a correction by writing to <a href="mailto:${SITE.email}">${SITE.email}</a> with the subject line "Correction". We aim to respond within 24 hours.</p>
+
         <h2>Independence</h2>
+
         <p>Editorial decisions are made independently of advertisers, sponsors, government and political interests. Advertising is clearly labelled and never influences reporting.</p>
+
         <h2>Ethics</h2>
+
         <p>We do not accept bribes or payment for coverage. Our journalists identify themselves as reporters, protect vulnerable sources, and respect privacy except where the public interest clearly outweighs it.</p>
+
         <h2>Community Standards</h2>
+
         <p>We avoid publishing content that promotes hatred, discrimination or violence against any group, and we take care when reporting on sensitive topics such as violence, tragedy and vulnerable individuals.</p>
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="js/main.js"></script>
+
 </body></html>`;
+
+
 
   const notFound = `<!DOCTYPE html>
+
 <html lang="en"><head>
+
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Page Not Found - ${SITE.name}</title>
+
     <meta name="robots" content="noindex, follow">
+
     <meta name="theme-color" content="#db0000">
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+
     ${adsenseScript()}
+
     ${analyticsScript()}
+
     <link rel="icon" href="favicon.ico">
+
     <link rel="stylesheet" href="css/styles.css">
+
 </head><body>
+
     <a class="skip-link" href="#main-content">Skip to content</a>
+
     <header class="site-header"><div class="header-top">
+
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
+
         <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+
     </div></header>
+
     <main id="main-content" class="container page-static">
+
         <h1>404 - Page Not Found</h1>
+
         <p>The page you're looking for doesn't exist, may have been removed, or its name may have changed as we refresh our coverage.</p>
+
         <p>Head back to the <a href="index.html">homepage</a> for the latest Nigeria news, or try searching above.</p>
+
         <p><a href="index.html" class="btn">&larr; Back to Homepage</a></p>
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="js/main.js"></script>
+
 </body></html>`;
+
+
 
   const store = `<!DOCTYPE html>
+
 <html lang="en"><head>
+
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Ebooks Store - ${SITE.name}</title>
+
     <meta name="description" content="Practical ebooks and prompt packs by Mindnewsng - grow your small business, go viral on TikTok and start your YouTube channel. Secure checkout via Selar with card, bank transfer and USSD.">
+
     <meta name="theme-color" content="#db0000">
+
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="alternate" type="application/rss+xml" title="${esc(SITE.name)} RSS" href="rss.xml">
+
     ${analyticsScript()}
+
     <link rel="icon" href="favicon.ico">
+
     <link rel="stylesheet" href="css/styles.css">
+
     <style>
+
       .store-hero { background: linear-gradient(135deg, #15161a 0%, #26282e 100%); color: #fff; border-radius: 14px; padding: 2.2rem 1.5rem; margin-bottom: 1.6rem; }
+
       .store-hero h1 { margin: 0 0 .4rem; font-size: 1.9rem; }
+
       .store-hero h1 span { color: #db0000; }
+
       .store-hero p { margin: 0; color: #d9d9d9; max-width: 640px; }
+
       .store-hero .slogan { display:inline-block; margin-top:.7rem; font-size:.72rem; letter-spacing:.22em; color:#ffd60a; text-transform:uppercase; }
+
       .store-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.2rem; }
+
       .store-card { background:#fff; border:1px solid #e8e8e8; border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
+
       .store-card img { width:100%; aspect-ratio: 1 / 1; object-fit: cover; display:block; }
+
       .store-card .sc-body { padding: 1rem 1.1rem 1.2rem; display:flex; flex-direction:column; gap:.5rem; flex:1; }
+
       .store-card h3 { margin:0; font-size:1.02rem; line-height:1.35; }
+
       .store-card .sc-desc { margin:0; color:#555; font-size:.86rem; line-height:1.5; flex:1; }
+
       .store-price { display:flex; align-items:baseline; gap:.55rem; }
+
       .store-price .now { font-weight:800; color:#15161a; font-size:1.08rem; }
+
       .store-price .was { color:#999; text-decoration:line-through; font-size:.85rem; }
+
       .store-badge { display:inline-block; background:#db0000; color:#fff; font-size:.68rem; font-weight:700; letter-spacing:.06em; padding:.25rem .55rem; border-radius:999px; width:fit-content; text-transform:uppercase; }
+
       .buy-btn { display:block; text-align:center; background:#15161a; color:#ffd60a !important; font-weight:700; padding:.7rem .5rem; border-radius:9px; text-decoration:none; transition:background .2s; }
+
       .buy-btn:hover { background:#db0000; color:#fff !important; }
+
       .store-note { margin-top:1.4rem; padding:1rem 1.2rem; background:#f6f8f7; border:1px solid #e2e8e6; border-radius:10px; color:#444; font-size:.88rem; line-height:1.55; }
+
     </style>
+
 </head><body>
+
     <a class="skip-link" href="#main-content">Skip to content</a>
+
     <header class="site-header"><div class="header-top">
+
         <button class="burger-btn" id="burgerBtn" aria-label="Menu"><span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span></button>
+
         <a href="index.html" class="site-logo"><img src="images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" onload="this.style.display='block';this.nextElementSibling.style.display='none'"><span class="logo-text-fallback" style="display:none">Mind<span>news</span>ng</span></a>
+
         <button class="search-btn" id="searchBtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+
     </div></header>
+
     <main id="main-content" class="container page-static">
+
         <div class="store-hero">
+
             <h1>The Mindnewsng <span>Store</span></h1>
+
             <p>Practical, no-fluff guides and prompt packs that help you earn, grow and build online. Download instantly after payment.</p>
+
             <span class="slogan">Smart News For Smart Minds</span>
+
         </div>
+
         <div class="store-grid">
+
             <div class="store-card">
+
                 <img src="images/cover_rooted.png" alt="Rooted &amp; Praying cover" loading="lazy">
+
                 <div class="sc-body">
+
                     <span class="store-badge">New &ndash; 67% off</span>
+
                     <h3>Rooted &amp; Praying &ndash; The Christian Parenting Guide for the Digital Age</h3>
+
                     <p class="sc-desc">Scripture, prayer and ready answers for 18 of the hardest digital-age parenting situations &ndash; phones, DMs, screenshots and hard questions at dinner.</p>
+
                     <div class="store-price"><span class="now">&#8358;5,000</span><span class="was">&#8358;15,000</span></div>
+
                     <a class="buy-btn" href="rooted-praying.html" target="_blank" rel="noopener">View Book &ndash; Instant Download</a>
+
                 </div>
+
             </div>
+
             <div class="store-card">
+
                 <img src="images/cover_smallbusiness.jpg" alt="Small Business Prompt Pack cover" loading="lazy">
+
                 <div class="sc-body">
+
                     <span class="store-badge">Best for starters</span>
+
                     <h3>Small Business Prompt Pack &ndash; From Zero to Your First 100 Customers</h3>
+
                     <p class="sc-desc">Ready-made AI prompts and playbooks to find customers, write offers and market your small business without a big budget.</p>
+
                     <div class="store-price"><span class="now">&#8358;2,500</span></div>
+
                     <a class="buy-btn" href="https://selar.com/6j91g4024d" target="_blank" rel="noopener">Buy Now &ndash; Instant Download</a>
+
                 </div>
+
             </div>
+
             <div class="store-card">
+
                 <img src="images/cover_tiktok.jpg" alt="TikTok Viral Prompt Pack cover" loading="lazy">
+
                 <div class="sc-body">
+
                     <span class="store-badge">Hot deal &ndash; 50% off</span>
+
                     <h3>TikTok Viral Prompt Pack &ndash; From Zero to Your First 10,000 Followers</h3>
+
                     <p class="sc-desc">Copy-paste prompts for hooks, captions and video ideas engineered for the TikTok algorithm &ndash; built for Nigerian creators.</p>
+
                     <div class="store-price"><span class="now">&#8358;2,500</span><span class="was">&#8358;5,000</span></div>
+
                     <a class="buy-btn" href="https://selar.com/u31n0o040z" target="_blank" rel="noopener">Buy Now &ndash; Instant Download</a>
+
                 </div>
+
             </div>
+
             <div class="store-card">
+
                 <img src="images/cover_youtube.jpg" alt="YouTube Starter Prompt Pack cover" loading="lazy">
+
                 <div class="sc-body">
+
                     <span class="store-badge">Hot deal &ndash; 50% off</span>
+
                     <h3>YouTube Starter Prompt Pack &ndash; From Zero to Your First 1,000 Subscribers</h3>
+
                     <p class="sc-desc">Titles, thumbnails, scripts and channel-growth prompts to launch a channel and reach your first 1,000 subscribers faster.</p>
+
                     <div class="store-price"><span class="now">&#8358;2,500</span><span class="was">&#8358;5,000</span></div>
+
                     <a class="buy-btn" href="https://selar.com/99z92k6m7n" target="_blank" rel="noopener">Buy Now &ndash; Instant Download</a>
+
                 </div>
+
             </div>
+
         </div>
+
         <div class="store-note">
+
             <strong>Secure checkout via Selar.</strong> Pay with card, bank transfer or USSD &ndash; prices convert automatically to your local currency (naira, cedi and more) at checkout. Your download link arrives instantly after payment. For support with any purchase, contact <a href="mailto:${SITE.email}">${SITE.email}</a>.
+
         </div>
+
     </main>
+
     ${footer()}
+
     ${backToTopBtn()}
+
     <script src="js/main.js"></script>
+
 </body></html>`;
 
+
+
   fs.writeFileSync(path.join(OUT, 'store.html'), store);
+
   fs.writeFileSync(path.join(OUT, 'about.html'), about);
+
   fs.writeFileSync(path.join(OUT, 'contact.html'), contact);
+
   fs.writeFileSync(path.join(OUT, 'privacy.html'), privacy);
+
   fs.writeFileSync(path.join(OUT, 'terms.html'), terms);
+
   fs.writeFileSync(path.join(OUT, 'editorial-policy.html'), editorial);
+
   fs.writeFileSync(path.join(OUT, '404.html'), notFound);
+
   console.log('  Built: store.html, about.html, contact.html, privacy.html, terms.html, editorial-policy.html, 404.html');
+
 }
+
+
 
 function copyAssets() {
+
   // Copy CSS
+
   if (fs.existsSync(CSS_SRC)) {
+
     fs.mkdirSync(path.join(OUT, 'css'), { recursive: true });
+
     fs.copyFileSync(CSS_SRC, path.join(OUT, 'css', 'styles.css'));
+
   }
+
+
 
   // Copy JS
+
   if (fs.existsSync(JS_SRC)) {
+
     fs.mkdirSync(path.join(OUT, 'js'), { recursive: true });
+
     fs.copyFileSync(JS_SRC, path.join(OUT, 'js', 'main.js'));
+
   }
+
+
 
   // Copy images (logo kit)
+
   const IMG_DIR = path.join(ROOT, 'images');
+
   if (fs.existsSync(IMG_DIR)) {
+
     fs.mkdirSync(path.join(OUT, 'images'), { recursive: true });
+
     for (const f of fs.readdirSync(IMG_DIR)) {
+
       const src = path.join(IMG_DIR, f);
+
       if (fs.statSync(src).isFile()) fs.copyFileSync(src, path.join(OUT, 'images', f));
+
     }
+
   }
 
+
+
   // Copy favicon
+
   const FAVICON = path.join(ROOT, 'favicon.ico');
+
   if (fs.existsSync(FAVICON)) fs.copyFileSync(FAVICON, path.join(OUT, 'favicon.ico'));
 
+
+
   console.log('  Copied assets (css, js, images, favicon)');
+
 }
+
+
 
 // ─── Nairaland Copy Desk (private helper page for manual posting) ──
 
+
+
 function nlSection(article) {
+
   const title = (article.title || '').toLowerCase();
+
   const cat = articleCategory(article);
+
   if (/passport|visa|deport|embassy/.test(title)) return 'Travel';
+
   if (cat === 'Jobs & Education') return 'Jobs/Vacancies';
+
   if (cat === 'Sports') return 'Sports';
+
   if (cat === 'Politics') return 'Politics';
+
   if (cat === 'World News') return 'Foreign Affairs';
+
   if (cat === 'Health') return 'Health';
+
   return 'News';
+
 }
+
+
 
 function nlQuestion(section) {
+
   const q = {
+
     'Jobs/Vacancies': 'Would you apply? Share your thoughts.',
+
     'Travel': 'Nigerians abroad or planning to relocate, how does this affect you?',
+
     'Foreign Affairs': 'What is your take on this?',
+
     'Politics': 'What is your take on this?',
+
     'Sports': 'Tell us what you think.',
+
     'Health': 'Your thoughts on this?',
+
   };
+
   return q[section] || 'What is your take on this?';
+
 }
+
+
 
 function buildNairalandDesk(articles) {
+
   const qPath = path.join(ROOT, 'data', 'fb_queue.json');
+
   if (!fs.existsSync(qPath)) return;
+
   let queue = [];
+
   try { queue = JSON.parse(fs.readFileSync(qPath, 'utf-8')); } catch (e) { return; }
+
   if (!Array.isArray(queue) || queue.length === 0) return;
+
   const byId = Object.fromEntries(articles.map(a => [a.id || a.slug, a]));
+
   const strip = t => (t || '').replace(/ - Check Below For Full Details\s*$/i, '');
+
   const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
+
+
   const cards = queue.map((item, idx) => {
+
     const a = byId[item.id] || {};
+
     const title = strip(item.title || a.title || item.id);
+
     const section = nlSection(a.id ? a : { title: item.title, category: '', subcategory: '' });
+
     const desc = (a.description || '').replace(/<[^>]+>/g, '').trim();
+
     const body = `${desc}\n\nFull details: ${item.url}\n\n${nlQuestion(section)}`;
+
     return `<div class="nl-card">
+
       <div class="nl-head"><span class="nl-sec">${esc(section)}</span><small>#${idx + 1} &middot; in FB queue</small></div>
+
       <div class="nl-row"><b>Title</b><div class="nl-copywrap"><textarea id="t${idx}" rows="2">${esc(title)}</textarea><button class="nl-copy" data-t="t${idx}">Copy Title</button></div></div>
+
       <div class="nl-row"><b>Body</b><div class="nl-copywrap"><textarea id="b${idx}" rows="8">${esc(body)}</textarea><button class="nl-copy" data-t="b${idx}">Copy Body</button></div></div>
+
       <div class="nl-links"><a href="${esc(item.url)}" target="_blank" rel="noopener">Open article</a> &middot; <a href="https://www.nairaland.com/${esc(section.toLowerCase().replace(/[^a-z]+/g, ''))}" target="_blank" rel="noopener">Open ${esc(section)} section</a></div>
+
     </div>`;
+
   }).join('\n');
 
+
+
   const page = `<!DOCTYPE html>
+
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+
 <meta name="robots" content="noindex, nofollow">
+
 <title>Nairaland Copy Desk | Mindnewsng (private)</title>
+
 <style>
+
 :root{color-scheme:light}*{box-sizing:border-box}body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;margin:0;background:#f4f6f3;color:#152018}
+
 header{background:#1f7a4d;color:#fff;padding:18px 20px}header h1{margin:0;font-size:1.3rem}header p{margin:6px 0 0;opacity:.9;font-size:.9rem}
+
 main{max-width:760px;margin:0 auto;padding:20px}
+
 .nl-card{background:#fff;border:1px solid #d8e2da;border-radius:14px;padding:18px;margin-bottom:18px}
+
 .nl-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+
 .nl-sec{background:#1f7a4d;color:#fff;border-radius:999px;padding:.25rem .7rem;font-size:.75rem;font-weight:700;text-transform:uppercase}
+
 .nl-row{margin:10px 0}.nl-row b{font-size:.85rem;color:#41564a}
+
 .nl-copywrap{display:flex;gap:8px;margin-top:4px}
+
 textarea{flex:1;border:1px solid #cfd9d1;border-radius:8px;padding:8px;font:inherit;font-size:.9rem;resize:vertical;background:#fbfcfa}
+
 .nl-copy{background:#1f7a4d;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;align-self:flex-start}
+
 .nl-copy:hover{background:#185d3b}
+
 .nl-links{margin-top:8px;font-size:.85rem}.nl-links a{color:#1f7a4d}
+
 .empty{text-align:center;color:#68796e;padding:40px 0}
+
 footer{text-align:center;color:#68796e;font-size:.8rem;padding:20px}
+
 </style></head><body>
+
 <header><h1>Nairaland Copy Desk</h1><p>Private helper &mdash; every story waiting in the FB queue, pre-formatted for Nairaland. Copy Title &rarr; paste, Copy Body &rarr; paste, then reply to comments.</p></header>
+
 <main>${cards}
+
 <p class="empty" style="font-size:.8rem">Rules: one section per story &middot; max ~3 posts/day &middot; always reply to comments &middot; never post a bare link.</p>
+
 </main><footer>Mindnewsng internal tool &mdash; do not share this URL.</footer>
+
 <script>
+
 document.querySelectorAll('.nl-copy').forEach(b=>b.onclick=async()=>{
+
   const el=document.getElementById(b.dataset.t);el.select();
+
   try{await navigator.clipboard.writeText(el.value);b.textContent='Copied \\u2713';}
+
   catch(x){document.execCommand('copy');b.textContent='Copied \\u2713';}
+
   setTimeout(()=>b.textContent=b.textContent.replace(' \\u2713',''),1600);
+
 });
+
 </script></body></html>`;
 
+
+
   fs.writeFileSync(path.join(OUT, 'nairaland.html'), page);
+
   console.log(`  Built: nairaland.html (${queue.length} queued stories)`);
+
 }
+
+
 
 // ─── Main ─────────────────────────────────────────────────────────
 
+
+
 function main() {
+
   console.log('MindnewsNG Static Site Generator');
+
   console.log('='.repeat(45));
 
+
+
   const articles = getArticles();
+
   console.log(`\nGenerating site from ${articles.length} articles...\n`);
 
+
+
   // Clean output
+
   if (fs.existsSync(OUT)) {
+
     fs.rmSync(OUT, { recursive: true });
+
   }
+
+
 
   // Build
+
   copyAssets();
+
   buildIndex(articles);
 
+
+
   // Category pages
+
   const usedCategories = [...new Set(articles.map(a => articleCategory(a)))];
+
   const allCats = [...new Set([...usedCategories, ...CATEGORIES])];
+
   for (const cat of allCats) {
+
     buildCategoryPage(cat, articles);
+
   }
+
+
 
   // Article pages
+
   fs.mkdirSync(path.join(OUT, 'articles'), { recursive: true });
+
   for (const article of articles) {
+
     buildArticlePage(article, articles);
+
   }
+
   console.log(`  Built: ${articles.length} article pages`);
 
+
+
   // Static pages
+
   buildStaticPages();
 
+
+
   // Nairaland copy desk (private helper)
+
   buildNairalandDesk(articles);
 
+
+
   // Author pages
+
   buildAuthorPages(articles);
 
+
+
   // SEO
+
   buildSeoPages(articles);
 
+
+
   // IndexNow key verification file (Bing/MSN instant indexing)
+
   const ik = path.join(ROOT, '7dc7557d24fc212b6e610f7dccdedf48.txt');
+
   if (fs.existsSync(ik)) fs.copyFileSync(ik, path.join(OUT, '7dc7557d24fc212b6e610f7dccdedf48.txt'));
+
   // Static landing pages (ebooks)
+
   const landingFiles = ['tiktok-viral-prompt-pack.html', 'rooted-praying.html'];
+
   for (const lf of landingFiles) {
+
     const src = path.join(ROOT, lf);
+
     if (fs.existsSync(src)) { fs.copyFileSync(src, path.join(OUT, lf)); console.log(`  Copied: ${lf}`); }
+
   }
 
+
+
   console.log(`\nDone! Site generated in: ${path.relative(process.cwd(), OUT)}`);
+
   console.log('Run: npm run dev   to preview locally');
+
 }
 
+
+
 main();
+
