@@ -50,12 +50,28 @@
     });
   }
 
-  function performSearch() {
+  async function loadArticlesIndex() {
+    if (window.__ARTICLES_PROMISE__) return window.__ARTICLES_PROMISE__;
+    window.__ARTICLES_PROMISE__ = (async () => {
+      try {
+        const r = await fetch('/data/articles-index.json', { cache: 'force-cache' });
+        if (!r.ok) return [];
+        const data = await r.json();
+        window.__ARTICLES__ = data;
+        return data;
+      } catch (e) {
+        return [];
+      }
+    })();
+    return window.__ARTICLES_PROMISE__;
+  }
+
+  async function performSearch() {
     if (!searchResults || !searchInput) return;
     const q = searchInput.value.trim().toLowerCase();
     if (q.length < 2) { searchResults.innerHTML = ''; return; }
 
-    const articles = window.__ARTICLES__ || [];
+    const articles = window.__ARTICLES__ || (await loadArticlesIndex());
     const matches = articles.filter(a =>
       (a.title && a.title.toLowerCase().includes(q)) ||
       (a.category && a.category.toLowerCase().includes(q))
