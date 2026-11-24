@@ -35,14 +35,8 @@ API = "https://graph.facebook.com/v23.0"
 MAX_PER_DAY = 10 ** 9  # NO DAILY CAP - posting continues at MIN_SPACING_MIN (day) / NIGHT_SPACING_MIN (night)
 MIN_SPACING_MIN = 10  # user-set: interval between posts (normal / morning-evening)
 NIGHT_SPACING_MIN = 40  # user-set: interval between posts at night (after 21:00 UTC)
-REAL_FALLBACK_IMAGES = {
-    "Politics": "https://images.unsplash.com/photo-1529107386315-e1c264d4b29e?auto=format&fit=crop&w=1600&q=80",
-    "World News": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1600&q=80",
-    "Sports": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1600&q=80",
-    "Health": "https://images.unsplash.com/photo-1512941937669-90a1b58e7e94?auto=format&fit=crop&w=1600&q=80",
-    "Money": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=80",
-    "News": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1600&q=80",
-}
+# Owner directive: never post unrelated stock photos. When the story has no real
+# image we build a branded headline card (text written on the image) instead.
 MAX_AGE_H = 72  # never post articles older than this many hours
 TAGS_BY_CAT = {
     "Jobs": "#JobsAbroad #Opportunity #Japa",
@@ -244,18 +238,41 @@ def stamp_badge(img_bytes):
     return buf.getvalue()
 
 
-def fallback_card(title):
-    """Green text card if the real image cannot be fetched."""
+def fallback_card(title, category=""):
+    """Branded headline card: the story text is written on the image, so the
+    picture is always relevant and never an unrelated stock photo."""
     from PIL import Image, ImageDraw, ImageFont
-    W = 1080
-    im = Image.new("RGB", (W, W), (23, 107, 85))
+    W = H = 1080
+    im = Image.new("RGB", (W, H), (11, 18, 32))
     d = ImageDraw.Draw(im)
-    try:
-        f = ImageFont.truetype("DejaVuSans-Bold.ttf", 64)
-        fb = ImageFont.truetype("DejaVuSans-Bold.ttf", 54)
-    except Exception:
-        f = fb = ImageFont.load_default()
-    words, lines, cur = title.split(), [], ""
+
+    def font(sz, bold=True):
+        names = ["DejaVuSans-Bold.ttf"] if bold else ["DejaVuSans.ttf"]
+        for p in names + ["arialbd.ttf", "arial.ttf",
+                          "C:/Windows/Fonts/arialbd.ttf", "C:/Windows/Fonts/arial.ttf"]:
+            try:
+                return ImageFont.truetype(p, sz)
+            except Exception:
+                continue
+        return ImageFont.load_default()
+
+    # brand accent
+    d.rectangle([0, 0, W, 14], fill=(200, 30, 30))
+    d.rectangle([0, H - 14, W, H], fill=(23, 107, 85))
+
+    # category chip
+    cat = (category or "BREAKING").upper()[:18]
+    fchip = font(34)
+    tw = d.textbbox((0, 0), cat, font=fchip)[2]
+    d.rounded_rectangle([60, 70, 60 + tw + 46, 130], radius=10, fill=(200, 30, 30))
+    d.text((83, 84), cat, font=fchip, fill="white")
+
+    clean = " ".join((title or "").replace("\u2019", "'").split())
+    if clean.endswith(" - Check Below For Full Details"):
+        clean = clean[: -len(" - Check Below For Full Details")]
+
+    f = font(62)
+    words, lines, cur = clean.split(), [], ""
     for w in words:
         t = (cur + " " + w).strip()
         if d.textbbox((0, 0), t, font=f)[2] > W - 120:
@@ -263,40 +280,50 @@ def fallback_card(title):
             cur = w
         else:
             cur = t
-    lines.append(cur)
-    y = 200
+    if cur:
+        lines.append(cur)
+    lines = lines[:9]
+    if len(lines) == 9 and words:
+        lines[8] = lines[8][: max(0, len(lines[8]) - 3)] + "..."
+
+    y = 300 if len(lines) <= 5 else 230
     for ln in lines:
         d.text((60, y), ln, font=f, fill="white")
-        y += 80
-    d.text((60, W - 160), "Full Details Below", font=fb, fill=(255, 214, 10))
-    d.rounded_rectangle([60, W - 90, 60 + 360, W - 40], radius=8, fill=(21, 32, 43))
-    d.text((80, W - 80), "MINDNEWSNG.COM", font=fb, fill="white")
+        y += 96
+
+    f2 = font(40)
+    d.text((60, H - 190), "Full story on mindnewsng.com", font=f2, fill=(255, 214, 10))
+    d.rounded_rectangle([60, H - 120, 60 + 430, H - 58], radius=10, fill=(21, 32, 43))
+    d.text((82, H - 108), "MINDNEWSNG.COM", font=font(40), fill="white")
+
     buf = io.BytesIO()
     im.save(buf, format="JPEG", quality=90)
     return buf.getvalue()
 
 
 def pick_researched_image(title, category):
-    """Owner directive: NO post with an empty image. When the source image is
-    missing, research a recent, topic-matching fallback photo before ever
-    falling back to the bare text card."""
-    t = (title or "").lower()
-    cat = (category or "").lower()
-    base = REAL_FALLBACK_IMAGES.get(cat if cat in REAL_FALLBACK_IMAGES else "News", REAL_FALLBACK_IMAGES["News"])
-    kw = [
-        (("immigrat", "visa", "resident", "permit", "asylum", "refugee", "migrant", "citizenship", "border", "deport", "emigrat"), REAL_FALLBACK_IMAGES["World News"]),
-        (("sport", "football", "footballer", "match", "club", "champion", "score"), REAL_FALLBACK_IMAGES["Sports"]),
-        (("health", "medical", "hospital", "doctor", "patient", "disease", "covid"), REAL_FALLBACK_IMAGES["Health"]),
-        (("money", "market", "bank", "econom", "inflation", "invest", "stock", "finance", "price"), REAL_FALLBACK_IMAGES["Money"]),
-        (("polit", "election", "government", "minister", "senate", "congress", "policy", "law"), REAL_FALLBACK_IMAGES["Politics"]),
-        (("tech", "business", "company", "start", "entrepreneur", "corps", "corporate", "startup"), REAL_FALLBACK_IMAGES["News"]),
-        (("entertain", "celebrity", "movie", "music", "film", "album", "artist"), REAL_FALLBACK_IMAGES["News"]),
-        (("lifestyle", "food", "travel", "culture", "art", "fashion"), REAL_FALLBACK_IMAGES["News"]),
-    ]
-    for keys, url in kw:
-        if any(k in t for k in keys):
-            return url
-    return base
+    """Owner directive: no unrelated stock photos. Generic Unsplash landscapes
+    were being reused across hundreds of posts, so image research now means:
+    use the story's own photo if it exists, otherwise build a branded headline
+    card with the story written on it. Returning None triggers that card."""
+    return None
+
+
+def img_hash(raw):
+    import hashlib
+    return hashlib.md5(raw).hexdigest()
+
+
+def recent_image_seen(state, raw):
+    """True if this exact photo was already used on a recent post - in that case
+    we show a headline card instead of repeating the same picture."""
+    h = img_hash(raw)
+    used = state.get("img_hashes") or []
+    if h in used:
+        return True
+    used.append(h)
+    state["img_hashes"] = used[-60:]
+    return False
 
 
 def build_message(a):
@@ -454,14 +481,11 @@ def main():
             except Exception as e:
                 print(f"queue card load fail ({e}), using fallback")
         if img_bytes is None:
-            fb_src = pick_researched_image(title, item.get("category") or "")
-            try:
-                img_bytes = stamp_badge(load_image(fb_src))
-                print(f"queue: researched fallback image for {aid}")
-            except Exception as e:
-                img_bytes = fallback_card(title)
+            # no real image: build the branded headline card (never a stock photo)
+            img_bytes = fallback_card(title, item.get("category") or "")
+            print(f"queue: headline card for {aid}")
         if dry:
-            print(f"--- DRY RUN (queue): {aid}\nIMAGE: {card if card.startswith('http') else fb_src or 'fallback'} ({len(img_bytes)//1024}KB)\n{msg}\n")
+            print(f"--- DRY RUN (queue): {aid}\nIMAGE: {'queue card' if card.startswith('http') else 'headline card'} ({len(img_bytes)//1024}KB)\n{msg}\n")
             n += 1
             continue
         try:
@@ -524,24 +548,25 @@ def main():
         slug = a.get("slug") or aid
         url = (f"https://mindnewsng.com/articles/{slug}.html" if slug
                else a.get("url", ""))
-        # image: real photo stamped, fallback card
+        # image: story photo if it is real and not repeated; otherwise a
+        # branded headline card with the story text on it
         img_bytes = None
         src = a.get("image") or ""
         if src.startswith("http"):
             for attempt in range(2):
                 try:
-                    img_bytes = stamp_badge(load_image(src))
+                    raw = load_image(src)
+                    if recent_image_seen(state, raw):
+                        print(f"image repeats a recent photo -> headline card: {aid}")
+                        break
+                    img_bytes = stamp_badge(raw)
                     break
                 except Exception as e:
                     print(f"image load fail ({e}), retrying...")
                     time.sleep(3)
         if img_bytes is None:
-            fb_src = pick_researched_image(title, a.get("category") or "")
-            try:
-                img_bytes = stamp_badge(load_image(fb_src))
-                print(f"image: researched fallback from {fb_src} for {aid}")
-            except Exception as e:
-                img_bytes = fallback_card(title)
+            img_bytes = fallback_card(title, a.get("category") or "")
+            print(f"image: headline card for {aid}")
         if dry:
             print(f"--- DRY RUN: {aid}\nIMAGE: {'real+badge' if a.get('image') else 'card fallback'} ({len(img_bytes)//1024}KB)\n{msg}\n\n\U0001F449 Full story here: {url}\n")
             n += 1
