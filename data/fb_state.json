@@ -1748,6 +1748,9 @@
   ],
   "it-was-reprisal-action-ughelli-lg-chairman-accuses-omo-agege-s-boys-of-firing-fi": [
    "2026-11-24T22:54:21.720814+00:00"
+  ],
+  "ecobank-announces-exit-of-three-expatriate-directors": [
+   "2026-11-24T23:34:52.433157+00:00"
   ]
  },
  "days": {
@@ -1759,9 +1762,9 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 144
+  "2026-11-24": 145
  },
- "last_ts": "2026-11-24T22:54:21.720814+00:00",
+ "last_ts": "2026-11-24T23:34:52.433157+00:00",
  "nogood": 0,
  "img_hashes": [
   "bf08eaa00ee60b68a42a350d9eb3dc45",
@@ -1808,6 +1811,7 @@
   "e244bd2f821fcac91bda0673f9ea172b",
   "2f47c65811c9cd50f98275ebb9139a23",
   "abffc1262b1212120caf0a8df43948b5",
-  "a0cc52221c88e106516145e1fb890705"
+  "a0cc52221c88e106516145e1fb890705",
+  "ef08eec94b5f070849c24ef033941615"
  ]
 }
