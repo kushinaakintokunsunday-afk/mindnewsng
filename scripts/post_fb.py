@@ -519,14 +519,17 @@ def main():
             n += 1
             save_state(state)
             remaining = int(item.get("repost") or 0)
-            newq = [i for i in queue if i.get("id") != aid]
             if remaining > 0:
+                # surgical update: re-read the queue, drop only this id, then
+                # append the repeat copy (never overwrite concurrent additions)
+                queue_remove(aid)
+                cur = fetch_queue()
                 nxt = dict(item); nxt["repost"] = remaining - 1
-                newq.append(nxt)
-                save_queue(newq)
+                cur.append(nxt)
+                save_queue(cur)
                 print(f"requeued for repost: {aid} -> x{remaining - 1}")
             else:
-                save_queue(newq)
+                queue_remove(aid)
             left, _ = quota_left()
             if left > 0:
                 print(f"pacing: sleeping {spacing} min before next post in this run")
