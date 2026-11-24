@@ -1712,6 +1712,9 @@
   ],
   "nans-threatens-to-shut-down-university-over-sug-president-s-arrest": [
    "2026-11-24T20:21:45.960349+00:00"
+  ],
+  "omo-agege-attack-makinde-campaign-accuses-apc-of-political-violence": [
+   "2026-11-24T20:32:16.039806+00:00"
   ]
  },
  "days": {
@@ -1723,9 +1726,9 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 132
+  "2026-11-24": 133
  },
- "last_ts": "2026-11-24T20:21:45.960349+00:00",
+ "last_ts": "2026-11-24T20:32:16.039806+00:00",
  "nogood": 0,
  "img_hashes": [
   "bf08eaa00ee60b68a42a350d9eb3dc45",
@@ -1767,6 +1770,7 @@
   "5711719967d6f6b76643bc80898cedf3",
   "5506adc981464e32f2aa51805f6d5ea0",
   "2da8a4539d2f55d6c3cc663e4857e877",
-  "8caa4cf7a496958b6f5286b55a8774e2"
+  "8caa4cf7a496958b6f5286b55a8774e2",
+  "1071b7ced49efe61502e22456a30b7e9"
  ]
 }
