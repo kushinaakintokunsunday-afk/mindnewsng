@@ -470,13 +470,14 @@ function absUrl(path) {
 
 function cleanDescription(text) {
   if (!text) return '';
-  return String(text)
+  const cleaned = String(text)
     .replace(/<[^>]+>/g, ' ')
     .replace(/&lt;[^&]*&gt;/g, ' ')
     .replace(/https?:\/\/[^\s]+/g, '')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 160);
+  return cleaned.length >= 40 ? cleaned : '';
 }
 
 function seoTags({ title, description, path, image, type = 'website' }) {
