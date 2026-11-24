@@ -1721,6 +1721,9 @@
   ],
   "nnpc-dismisses-missing-2-04bn-duke-oil-crude-proceeds-reports": [
    "2026-11-24T20:42:42.321789+00:00"
+  ],
+  "firm-champions-industrial-competitiveness-local-sourcing-regional-trade": [
+   "2026-11-24T20:42:42.321789+00:00"
   ]
  },
  "days": {
@@ -1732,7 +1735,7 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 135
+  "2026-11-24": 136
  },
  "last_ts": "2026-11-24T20:42:42.321789+00:00",
  "nogood": 0,
