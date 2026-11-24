@@ -1553,6 +1553,9 @@
   ],
   "tinubu-writes-reps-seeks-approval-for-revised-federal-laws": [
    "2026-11-24T15:47:20.379437+00:00"
+  ],
+  "cas-explains-decision-to-restore-senegal-s-afcon-title": [
+   "2026-11-24T15:47:20.379437+00:00"
   ]
  },
  "days": {
@@ -1564,7 +1567,7 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 79
+  "2026-11-24": 80
  },
  "last_ts": "2026-11-24T15:47:20.379437+00:00",
  "nogood": 0,
@@ -1586,6 +1589,7 @@
   "e4c9d4b754552d398c4825e4c1d2f4dd",
   "e7f7b1a12163a959e4cd520ad22f2300",
   "9637a8334de0f249ecd2511c93a6464b",
-  "a7aaf41828db1d6b54febe7ce4aa4382"
+  "a7aaf41828db1d6b54febe7ce4aa4382",
+  "91ab377cb3c9f32a501b746d106f7e6d"
  ]
 }
