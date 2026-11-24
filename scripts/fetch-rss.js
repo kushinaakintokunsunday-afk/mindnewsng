@@ -36,7 +36,7 @@ const RSS_FEEDS = [
 
   // filtered by <source url> host in parseRSS below.
 
-  { source: 'Legit.ng',       category: 'News',        url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('site:legit.ng when:2d (immigration OR visa OR residency OR permit OR citizenship OR foreign worker OR asylum OR refugee)') + '&hl=en-NG&gl=NG&ceid=NG:en' },
+  { source: 'Legit.ng',       category: 'News',        url: 'https://news.google.com/rss/search?q=' + encodeURIComponent('site:legit.ng when:7d (immigration OR visa OR residency OR permit OR citizenship OR foreign worker OR asylum OR refugee)') + '&hl=en-NG&gl=NG&ceid=NG:en' },
 
   { source: 'Vanguard',       category: 'News',        url: 'https://www.vanguardngr.com/feed/' },
 
