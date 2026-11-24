@@ -1670,6 +1670,9 @@
   ],
   "asup-declares-two-week-strike-in-four-states-over-unpaid-allowances": [
    "2026-11-24T19:08:14.094189+00:00"
+  ],
+  "senegal-reinstated-as-afcon-2025-winners-by-court-ruling": [
+   "2026-11-24T19:18:42.426096+00:00"
   ]
  },
  "days": {
@@ -1681,9 +1684,9 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 118
+  "2026-11-24": 119
  },
- "last_ts": "2026-11-24T19:08:14.094189+00:00",
+ "last_ts": "2026-11-24T19:18:42.426096+00:00",
  "nogood": 0,
  "img_hashes": [
   "bf08eaa00ee60b68a42a350d9eb3dc45",
@@ -1720,6 +1723,7 @@
   "868a7b945504db9d564eb89993a549db",
   "01786c00aa4b4f186476804156cc3c29",
   "0628295ba83878750350d771a0773661",
-  "f14d82bc6d8182d12bcdae2418ea0ae1"
+  "f14d82bc6d8182d12bcdae2418ea0ae1",
+  "3d6dc090c88ec2ef21d9cc6abeb54b61"
  ]
 }
