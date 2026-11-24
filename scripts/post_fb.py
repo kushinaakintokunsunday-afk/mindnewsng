@@ -148,9 +148,15 @@ def fetch_queue():
     raw = gh_get_raw("data/fb_queue.json")
     if raw:
         try:
-            return json.loads(raw)
+            items = json.loads(raw)
         except Exception:
-            pass
+            return []
+        out, seen_ids = [], set()
+        for i in items:
+            if i.get("id") and i["id"] not in seen_ids:
+                seen_ids.add(i["id"])
+                out.append(i)
+        return out
     return []
 
 
@@ -475,6 +481,12 @@ def main():
             continue
         msg = item.get("message", "")
         title = item.get("title", aid)
+        # never post the same headline twice, even for forced reposts
+        nt = normalize(title)[:60]
+        if nt and any(m.startswith(nt) for m in seen):
+            queue_remove(aid)
+            print(f"queue skip (already on page): {aid}")
+            continue
         url = item.get("url") or extract_url(msg)
         msg = strip_link(msg)
         card = item.get("card", "")
@@ -502,6 +514,7 @@ def main():
             state["posted"][aid] = [now.isoformat()]
             state["days"][today] = posted_today + n + 1
             state["last_ts"] = now.isoformat()
+            seen.add(nt)
             print(f"POSTED (queue) {aid} -> {pid}")
             n += 1
             save_state(state)
