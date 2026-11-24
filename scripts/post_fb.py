@@ -260,8 +260,12 @@ def fallback_card(title, category=""):
     d.rectangle([0, 0, W, 14], fill=(200, 30, 30))
     d.rectangle([0, H - 14, W, H], fill=(23, 107, 85))
 
-    # category chip
+    # category chip (immigration stories always carry the IMMIGRATION chip)
     cat = (category or "BREAKING").upper()[:18]
+    tlow = (title or "").lower()
+    if any(k in tlow for k in ("visa", "immigrat", "residen", "permit", "citizenship",
+                               "asylum", "refugee", "migrant", "japa", "passport", "deport")):
+        cat = "IMMIGRATION"
     fchip = font(34)
     tw = d.textbbox((0, 0), cat, font=fchip)[2]
     d.rounded_rectangle([60, 70, 60 + tw + 46, 130], radius=10, fill=(200, 30, 30))
