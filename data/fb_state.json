@@ -1487,6 +1487,9 @@
   ],
   "moment-mexican-troops-captured-cartel-leader-el-chapo-isidro": [
    "2026-11-24T13:51:23.475204+00:00"
+  ],
+  "delta-campaign-attack-police-confirm-six-dead-several-injured": [
+   "2026-11-24T13:51:23.475204+00:00"
   ]
  },
  "days": {
@@ -1498,7 +1501,7 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 57
+  "2026-11-24": 58
  },
  "last_ts": "2026-11-24T13:51:23.475204+00:00",
  "nogood": 0,
