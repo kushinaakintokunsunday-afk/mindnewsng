@@ -566,7 +566,7 @@ function newsArticleSchema(article, cat) {
 
     headline: article.title,
 
-    description: cleanDescription(article.description),
+    description: (cleanDescription(article.description) || article.title),
 
     image: [finalImg],
 
@@ -2047,7 +2047,7 @@ function buildArticlePage(article, allArticles) {
 
       title: `${article.title} - ${SITE.name}`,
 
-      description: cleanDescription(article.description),
+      description: (cleanDescription(article.description) || article.title),
 
       path: `/articles/${article.slug}.html`,
 
