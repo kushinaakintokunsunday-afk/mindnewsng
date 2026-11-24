@@ -1529,6 +1529,9 @@
   ],
   "breaking-nigerian-police-confirm-six-persons-dead-in-delta-ndc-campaign-attack-p": [
    "2026-11-24T15:05:12.577101+00:00"
+  ],
+  "ndc-attack-police-confirm-six-people-killed-in-delta": [
+   "2026-11-24T15:05:12.577101+00:00"
   ]
  },
  "days": {
@@ -1540,7 +1543,7 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 71
+  "2026-11-24": 72
  },
  "last_ts": "2026-11-24T15:05:12.577101+00:00",
  "nogood": 0,
