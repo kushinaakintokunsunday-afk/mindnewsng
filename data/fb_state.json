@@ -1424,6 +1424,9 @@
   ],
   "edo-selected-win-inaugural-igp-inter-club-judo-championship": [
    "2026-11-24T09:57:27.147585+00:00"
+  ],
+  "inec-to-conduct-mock-accreditation-in-490-lagos-polling-units": [
+   "2026-11-24T10:08:26.237296+00:00"
   ]
  },
  "days": {
@@ -1435,9 +1438,9 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 14
+  "2026-11-24": 15
  },
- "last_ts": "2026-11-24T09:57:27.147585+00:00",
+ "last_ts": "2026-11-24T10:08:26.237296+00:00",
  "nogood": 0,
  "img_hashes": [
   "bf08eaa00ee60b68a42a350d9eb3dc45",
@@ -1446,6 +1449,7 @@
   "6fb15f7dfe52bcfb646f8c60662df022",
   "524b4a4cbf6641967ac6cc25ec9d04be",
   "4a51fd4f380b13dfc7384ed013736d7a",
-  "ae492df993e72854fcf13b5e1da85ee3"
+  "ae492df993e72854fcf13b5e1da85ee3",
+  "98bb50500ae4d705a1ae091dd042cfd7"
  ]
 }
