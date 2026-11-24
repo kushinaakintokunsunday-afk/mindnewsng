@@ -1724,6 +1724,9 @@
   ],
   "firm-champions-industrial-competitiveness-local-sourcing-regional-trade": [
    "2026-11-24T20:42:42.321789+00:00"
+  ],
+  "poor-funding-hampering-our-monitoring-of-mdas-frc": [
+   "2026-11-24T20:53:12.105412+00:00"
   ]
  },
  "days": {
@@ -1735,9 +1738,9 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 136
+  "2026-11-24": 137
  },
- "last_ts": "2026-11-24T20:42:42.321789+00:00",
+ "last_ts": "2026-11-24T20:53:12.105412+00:00",
  "nogood": 0,
  "img_hashes": [
   "bf08eaa00ee60b68a42a350d9eb3dc45",
