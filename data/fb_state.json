@@ -1643,6 +1643,9 @@
   ],
   "five-women-killed-every-hour-globally-by-partner-relative-last-year-un": [
    "2026-11-24T18:26:02.899799+00:00"
+  ],
+  "ndc-boycotts-igp-s-meeting-over-alleged-attacks-on-members": [
+   "2026-11-24T18:26:02.899799+00:00"
   ]
  },
  "days": {
@@ -1654,7 +1657,7 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 109
+  "2026-11-24": 110
  },
  "last_ts": "2026-11-24T18:26:02.899799+00:00",
  "nogood": 0,
@@ -1689,6 +1692,7 @@
   "f8739337c87aeccc42261c9592292692",
   "11abcd70ee8892ef48846c2f0f98d983",
   "e5bfc4d8834d742a89f066b8f8e056dc",
-  "25a3945547ed78195c402ccbdfb83340"
+  "25a3945547ed78195c402ccbdfb83340",
+  "868a7b945504db9d564eb89993a549db"
  ]
 }
