@@ -1478,6 +1478,9 @@
   ],
   "three-suspects-nabbed-for-armed-robbery-kidnapping-in-kano": [
    "2026-11-24T13:30:24.862609+00:00"
+  ],
+  "woman-attacks-police-inspector-tears-uniform-during-arrest": [
+   "2026-11-24T13:40:52.078940+00:00"
   ]
  },
  "days": {
@@ -1489,9 +1492,9 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 54
+  "2026-11-24": 55
  },
- "last_ts": "2026-11-24T13:30:24.862609+00:00",
+ "last_ts": "2026-11-24T13:40:52.078940+00:00",
  "nogood": 0,
  "img_hashes": [
   "bf08eaa00ee60b68a42a350d9eb3dc45",
@@ -1503,6 +1506,7 @@
   "ae492df993e72854fcf13b5e1da85ee3",
   "98bb50500ae4d705a1ae091dd042cfd7",
   "572e051e99aea065e852f7a130776ec3",
-  "699579895834a71d8a3fa17b4f15e22b"
+  "699579895834a71d8a3fa17b4f15e22b",
+  "48ad673ffadc5efb29fc76ce5a08a3f5"
  ]
 }
