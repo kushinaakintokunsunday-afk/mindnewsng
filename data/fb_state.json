@@ -1676,6 +1676,9 @@
   ],
   "bayelsa-boat-accident-reps-demand-safer-boats-compulsory-life-jackets": [
    "2026-11-24T19:18:42.426096+00:00"
+  ],
+  "full-list-10-countries-with-most-afcon-titles": [
+   "2026-11-24T19:29:08.420387+00:00"
   ]
  },
  "days": {
@@ -1687,9 +1690,9 @@
   "2026-11-21": 92,
   "2026-11-22": 94,
   "2026-11-23": 72,
-  "2026-11-24": 120
+  "2026-11-24": 121
  },
- "last_ts": "2026-11-24T19:18:42.426096+00:00",
+ "last_ts": "2026-11-24T19:29:08.420387+00:00",
  "nogood": 0,
  "img_hashes": [
   "bf08eaa00ee60b68a42a350d9eb3dc45",
@@ -1727,6 +1730,7 @@
   "01786c00aa4b4f186476804156cc3c29",
   "0628295ba83878750350d771a0773661",
   "f14d82bc6d8182d12bcdae2418ea0ae1",
-  "3d6dc090c88ec2ef21d9cc6abeb54b61"
+  "3d6dc090c88ec2ef21d9cc6abeb54b61",
+  "5711719967d6f6b76643bc80898cedf3"
  ]
 }
