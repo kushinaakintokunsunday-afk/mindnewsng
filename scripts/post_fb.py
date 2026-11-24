@@ -385,6 +385,10 @@ def main():
     if not dry and (not PAGE_ID or not TOKEN):
         print("FB_PAGE_ID / FB_PAGE_TOKEN missing"); sys.exit(1)
 
+    # quiet hours: never post 00:00-05:00 UTC (policy)
+    if not dry and datetime.now(timezone.utc).hour < 5:
+        print("quiet hours (00-05 UTC): no posting"); return
+
     # spacing: default 10 min (normal), 40 min at night (after 21:00 UTC);
     # temporarily overridable via data/fb_tuning.json
     spacing = MIN_SPACING_MIN
