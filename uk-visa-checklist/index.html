@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free UK Visa Checklist for Nigerians - Mindnewsng</title>
+    <meta name="description" content="Get the free 6-page UK visa checklist for Nigerians. Step-by-step documents, fees and red flags.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://mindnewsng.com/uk-visa-checklist/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Mindnewsng">
+    <meta property="og:title" content="Free UK Visa Checklist for Nigerians">
+    <meta property="og:description" content="Get the free 6-page UK visa checklist for Nigerians.">
+    <meta property="og:url" content="https://mindnewsng.com/uk-visa-checklist/">
+    <meta property="og:image" content="https://mindnewsng.com/images/og_default.jpg">
+    <meta name="theme-color" content="#db0000">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+        <div class="header-top">
+            <a href="../index.html" class="site-logo"><img src="../images/logo.png" alt="Mindnewsng logo" style="height:2.7rem;width:auto;"><span class="logo-text-fallback" style="display:none">Mindnewsng</span></a>
+        </div>
+    </header>
+    <main id="main-content" class="container page-article">
+        <article class="article-content">
+            <header class="article-header">
+                <span class="category-tag" style="--cat-color:#1a73e8">FREE GUIDE</span>
+                <h1>UK Visa Checklist for Nigerians</h1>
+                <p class="lead"><strong>COPY PENDING (COPY-2/COPY-3):</strong> landing page headline, subheadline, bullet benefits, and trust line will be inserted here using the exact copy supplied.</p>
+            </header>
+
+            <form id="leadForm" class="lead-form" novalidate>
+                <div class="form-row">
+                    <label for="firstName">First name <span class="optional">(optional)</span></label>
+                    <input type="text" id="firstName" name="firstName" autocomplete="given-name">
+                </div>
+                <div class="form-row">
+                    <label for="email">Email <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" required autocomplete="email">
+                </div>
+                <button type="submit" class="buy-btn">Send me the checklist</button>
+                <p class="form-note">No phone number required. Unsubscribe any time.</p>
+            </form>
+
+            <div id="thankYou" class="thank-you" style="display:none">
+                <h2>Thank you!</h2>
+                <p><strong>COPY PENDING (COPY-3):</strong> thank-you page copy, PDF delivery link, and 4-email sequence (delivery + Day 1/3/7) will be inserted here.</p>
+                <p><a href="../articles/uk-seasonal-worker-visa-2027-requirements.html" class="buy-btn">Read the full UK Seasonal Worker Visa guide &rarr;</a></p>
+            </div>
+        </article>
+    </main>
+
+    <script>
+    // Form plumbing (wire the action URL to your email provider: Mailchimp/ConvertKit/Brevo).
+    // TODO: set FORM_ENDPOINT to your provider's form action URL before going live.
+    const FORM_ENDPOINT = '';
+    const leadForm = document.getElementById('leadForm');
+    const thankYou = document.getElementById('thankYou');
+    if (leadForm) {
+      leadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim();
+        const firstName = document.getElementById('firstName').value.trim();
+        if (!email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+          alert('Please enter a valid email address.');
+          return;
+        }
+        const btn = leadForm.querySelector('button[type="submit"]');
+        btn.disabled = true; btn.textContent = 'Sending...';
+        try {
+          if (FORM_ENDPOINT) {
+            await fetch(FORM_ENDPOINT, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ firstName, email })
+            });
+          }
+          leadForm.style.display = 'none';
+          thankYou.style.display = 'block';
+          // TODO: trigger delivery email + Day 1/3/7 sequence via your provider's automation.
+        } catch (err) {
+          btn.disabled = false; btn.textContent = 'Send me the checklist';
+          alert('Something went wrong. Please try again.');
+        }
+      });
+    }
+    </script>
+
+    <footer class="site-footer"><div class="container"><p>&copy; 2026 Mindnewsng. <a href="../privacy.html">Privacy</a> &middot; <a href="../terms.html">Terms</a> &middot; <a href="../affiliate-disclosure.html">Affiliate Disclosure</a></p></div></footer>
+</body>
+</html>

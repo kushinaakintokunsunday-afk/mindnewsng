@@ -3399,6 +3399,16 @@ function copyAssets() {
 
 
 
+  const LANDING_DIR = path.join(ROOT, 'uk-visa-checklist');
+  if (fs.existsSync(LANDING_DIR)) {
+    const dest = path.join(OUT, 'uk-visa-checklist');
+    fs.mkdirSync(dest, { recursive: true });
+    for (const f of fs.readdirSync(LANDING_DIR)) {
+      const src = path.join(LANDING_DIR, f);
+      if (fs.statSync(src).isFile()) fs.copyFileSync(src, path.join(dest, f));
+    }
+  }
+
   console.log('  Copied assets (css, js, images, favicon)');
 
 }
@@ -3640,6 +3650,17 @@ function main() {
   }
 
   console.log(`  Built: ${articles.length} article pages`);
+
+  // Copy hand-authored static article pages (cornerstone guides etc.)
+  const STATIC_ARTICLES = path.join(ROOT, 'static-articles');
+  if (fs.existsSync(STATIC_ARTICLES)) {
+    fs.mkdirSync(path.join(OUT, 'articles'), { recursive: true });
+    for (const f of fs.readdirSync(STATIC_ARTICLES)) {
+      const src = path.join(STATIC_ARTICLES, f);
+      if (fs.statSync(src).isFile()) fs.copyFileSync(src, path.join(OUT, 'articles', f));
+    }
+    console.log('  Copied static article pages');
+  }
 
 
 
