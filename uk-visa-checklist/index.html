@@ -17,6 +17,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="../favicon.ico">
     <link rel="stylesheet" href="../css/styles.css">
+<!-- MailerLite Universal -->
+<script>
+    (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
+    .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
+    n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
+    (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
+    ml('account', '2821655');
+</script>
+<!-- End MailerLite Universal -->
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -33,18 +42,8 @@
                 <p class="lead"><strong>COPY PENDING (COPY-2/COPY-3):</strong> landing page headline, subheadline, bullet benefits, and trust line will be inserted here using the exact copy supplied.</p>
             </header>
 
-            <form id="leadForm" class="lead-form" novalidate>
-                <div class="form-row">
-                    <label for="firstName">First name <span class="optional">(optional)</span></label>
-                    <input type="text" id="firstName" name="firstName" autocomplete="given-name">
-                </div>
-                <div class="form-row">
-                    <label for="email">Email <span class="required">*</span></label>
-                    <input type="email" id="email" name="email" required autocomplete="email">
-                </div>
-                <button type="submit" class="buy-btn">Send me the checklist</button>
-                <p class="form-note">No phone number required. Unsubscribe any time.</p>
-            </form>
+            <!-- MailerLite embedded form -->
+            <div class="ml-embedded" data-form="9tZP3T"></div>
 
             <div id="thankYou" class="thank-you" style="display:none">
                 <h2>Thank you!</h2>
@@ -55,39 +54,14 @@
     </main>
 
     <script>
-    // Form plumbing (wire the action URL to your email provider: Mailchimp/ConvertKit/Brevo).
-    // TODO: set FORM_ENDPOINT to your provider's form action URL before going live.
-    const FORM_ENDPOINT = '';
-    const leadForm = document.getElementById('leadForm');
-    const thankYou = document.getElementById('thankYou');
-    if (leadForm) {
-      leadForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('email').value.trim();
-        const firstName = document.getElementById('firstName').value.trim();
-        if (!email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
-          alert('Please enter a valid email address.');
-          return;
-        }
-        const btn = leadForm.querySelector('button[type="submit"]');
-        btn.disabled = true; btn.textContent = 'Sending...';
-        try {
-          if (FORM_ENDPOINT) {
-            await fetch(FORM_ENDPOINT, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ firstName, email })
-            });
-          }
-          leadForm.style.display = 'none';
-          thankYou.style.display = 'block';
-          // TODO: trigger delivery email + Day 1/3/7 sequence via your provider's automation.
-        } catch (err) {
-          btn.disabled = false; btn.textContent = 'Send me the checklist';
-          alert('Something went wrong. Please try again.');
-        }
-      });
-    }
+    // Show thank-you panel when MailerLite redirects back with ?thanks=1
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('thanks') === '1') {
+        const ty = document.getElementById('thankYou');
+        if (ty) ty.style.display = 'block';
+      }
+    })();
     </script>
 
     <footer class="site-footer"><div class="container"><p>&copy; 2026 Mindnewsng. <a href="../privacy.html">Privacy</a> &middot; <a href="../terms.html">Terms</a> &middot; <a href="../affiliate-disclosure.html">Affiliate Disclosure</a></p></div></footer>
