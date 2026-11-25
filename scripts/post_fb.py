@@ -38,6 +38,34 @@ NIGHT_SPACING_MIN = 40  # user-set: interval between posts at night (after 21:00
 # Owner directive: never post unrelated stock photos. When the story has no real
 # image we build a branded headline card (text written on the image) instead.
 MAX_AGE_H = 72  # never post articles older than this many hours
+
+# Per-article category overrides (persist across RSS regenerations)
+CATEGORY_OVERRIDES = {
+    "aspira-nigeria-announces-50-million-dollar-mega-factory-investment-in-ogun-state": "Money",
+    "youtube-star-ms-rachel-protests-us-child-immigration-hearings": "World News",
+}
+
+POLITICS_KW = ["politics", "election", "court", "governor", "candidate", "senatorial", "party", "gubernatorial"]
+FALSE_POS = ["port harcourt", "port-harcourt"]
+
+
+def normalize_category(article):
+    """Apply per-article overrides so category fixes persist across RSS regenerations."""
+    slug = (article.get("slug") or article.get("id") or "").lower()
+    if slug in CATEGORY_OVERRIDES:
+        return CATEGORY_OVERRIDES[slug]
+    cat = (article.get("category") or "News").strip()
+    # fold Business/Education/Jobs
+    if cat == "Business":
+        cat = "Money"
+    elif cat in ("Education", "Jobs"):
+        cat = "Jobs & Education"
+    # politics-under-Money
+    if cat == "Money":
+        t = ((article.get("title") or "") + " " + slug).lower()
+        if any(k in t for k in POLITICS_KW) and not any(fp in t for fp in FALSE_POS):
+            cat = "Politics"
+    return cat
 TAGS_BY_CAT = {
     "Jobs": "#JobsAbroad #Opportunity #Japa",
     "Money": "#Money #Finance #NaijaMoney",
@@ -498,7 +526,7 @@ def main():
                 print(f"queue card load fail ({e}), using fallback")
         if img_bytes is None:
             # no real image: build the branded headline card (never a stock photo)
-            img_bytes = fallback_card(title, item.get("category") or "")
+            img_bytes = fallback_card(title, normalize_category(item) or "")
             print(f"queue: headline card for {aid}")
         if dry:
             print(f"--- DRY RUN (queue): {aid}\nIMAGE: {'queue card' if card.startswith('http') else 'headline card'} ({len(img_bytes)//1024}KB)\n{msg}\n")
@@ -585,7 +613,7 @@ def main():
                     print(f"image load fail ({e}), retrying...")
                     time.sleep(3)
         if img_bytes is None:
-            img_bytes = fallback_card(title, a.get("category") or "")
+            img_bytes = fallback_card(title, normalize_category(a) or "")
             print(f"image: headline card for {aid}")
         if dry:
             print(f"--- DRY RUN: {aid}\nIMAGE: {'real+badge' if a.get('image') else 'card fallback'} ({len(img_bytes)//1024}KB)\n{msg}\n\n\U0001F449 Full story here: {url}\n")
