@@ -200,10 +200,31 @@ function normalizeCategory(cat) {
 
 
 
+// Per-article category overrides (persist across RSS regenerations)
+const CATEGORY_OVERRIDES = {
+  'aspira-nigeria-announces-50-million-dollar-mega-factory-investment-in-ogun-state': 'Money',
+  'youtube-star-ms-rachel-protests-us-child-immigration-hearings': 'World News',
+  'us-court-convicts-huawei-of-stealing-trade-secrets': 'Politics',
+};
+
 function articleCategory(article) {
-
-  return normalizeCategory(article.category);
-
+  if (article && CATEGORY_OVERRIDES[article.slug || article.id]) {
+    return CATEGORY_OVERRIDES[article.slug || article.id];
+  }
+  // politics-under-Money: move clearly political articles
+  const cat = normalizeCategory(article.category);
+  if (cat === 'Money') {
+    const t = ((article.title || '') + ' ' + (article.slug || '')).toLowerCase();
+    const politicsKw = ['politics', 'election', 'court', 'governor', 'candidate', 'senatorial', 'party', 'gubernatorial'];
+    const falsePos = ['port harcourt', 'port-harcourt'];
+    if (politicsKw.some(k => t.includes(k)) && !falsePos.some(fp => t.includes(fp))) {
+      return 'Politics';
+    }
+  }
+  // fold Business/Education/Jobs
+  if (cat === 'Business') return 'Money';
+  if (cat === 'Education' || cat === 'Jobs') return 'Jobs & Education';
+  return cat;
 }
 
 
