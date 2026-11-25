@@ -669,7 +669,7 @@ function cleanAuthorName(article) {
 
   const src = String((article && (article.source || article.author)) || '').trim();
 
-  if (!src || /google news/i.test(src)) return 'Mindnewsng';
+  if (!src || /google news/i.test(src)) return 'Mindnewsng Desk';
 
   return src;
 
@@ -844,6 +844,12 @@ function footer() {
                     <li><a href="${absUrl('/store.html')}">🛒 Store &ndash; Ebooks &amp; Guides</a></li>
 
                     <li><a href="${absUrl('/editorial-policy.html')}">Editorial Policy</a></li>
+
+                    <li><a href="${absUrl('/how-we-report.html')}">How We Report</a></li>
+
+                    <li><a href="${absUrl('/corrections.html')}">Corrections Policy</a></li>
+
+                    <li><a href="${absUrl('/affiliate-disclosure.html')}">Affiliate Disclosure</a></li>
 
                     <li><a href="${absUrl('/authors/index.html')}">Our Journalists</a></li>
 
@@ -1048,6 +1054,10 @@ function featuredCard(article, imgW = 300, imgH = 169) {
 
 
 function buildSeoPages(articles) {
+  let redirects = {};
+  const rPath = path.join(ROOT, 'data', 'redirects.json');
+  if (fs.existsSync(rPath)) { try { redirects = JSON.parse(fs.readFileSync(rPath, 'utf-8')); } catch (e) {} }
+  articles = articles.filter(a => !redirects[a.slug]);
 
   const now = new Date().toUTCString();
 
@@ -1193,7 +1203,10 @@ function buildSeoPages(articles) {
 
   // Slim search index (lazy-loaded by site search) — keeps __ARTICLES__ out of every page
   fs.mkdirSync(path.join(OUT, 'data'), { recursive: true });
-  const searchIndex = articles.map(a => ({ id: a.id, title: a.title, slug: a.slug, category: articleCategory(a) }));
+  let _redirects = {};
+  const _rPath = path.join(ROOT, 'data', 'redirects.json');
+  if (fs.existsSync(_rPath)) { try { _redirects = JSON.parse(fs.readFileSync(_rPath, 'utf-8')); } catch (e) {} }
+  const searchIndex = articles.filter(a => !_redirects[a.slug]).map(a => ({ id: a.id, title: a.title, slug: a.slug, category: articleCategory(a) }));
   fs.writeFileSync(path.join(OUT, 'data', 'articles-index.json'), JSON.stringify(searchIndex));
 
   if (SITE.adsense) {
@@ -2138,7 +2151,7 @@ function buildArticlePage(article, allArticles) {
 
             <div class="article-body">
 
-                <p class="lead">${esc(article.description)}</p>
+                ${cleanDescription(article.description) ? `<p class="lead">${esc(cleanDescription(article.description))}</p>` : ''}
 
                 ${articleBody(article)}
 
@@ -2237,6 +2250,42 @@ function buildArticlePage(article, allArticles) {
 }
 
 
+
+function buildRedirects(redirects) {
+  if (!redirects || !Object.keys(redirects).length) return;
+  fs.mkdirSync(path.join(OUT, 'articles'), { recursive: true });
+  let n = 0;
+  for (const [oldSlug, canonSlug] of Object.entries(redirects)) {
+    const canonUrl = `${SITE.url}/articles/${canonSlug}.html`;
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting... - ${esc(SITE.name)}</title>
+    <meta http-equiv="refresh" content="0; url=${canonUrl}">
+    <link rel="canonical" href="${canonUrl}">
+    <meta name="robots" content="noindex, follow">
+    ${orgSchema()}
+</head>
+<body>
+    <p>This article has moved. Redirecting to <a href="${canonUrl}">${canonUrl}</a>.</p>
+    <script>window.location.replace("${canonUrl}");</script>
+</body>
+</html>`;
+    fs.writeFileSync(path.join(OUT, 'articles', `${oldSlug}.html`), html);
+    n++;
+  }
+  console.log(`  Built: ${n} redirect pages`);
+}
+
+function authorBio(name) {
+  if (name === 'Mindnewsng Desk') {
+    return 'The Mindnewsng Desk compiles, verifies and publishes breaking news from trusted sources. '
+         + 'Stories are reviewed by our editorial team before publication. Corrections are welcomed at editor@mindnewsng.com.';
+  }
+  return `Reporter and contributor for ${SITE.name}.`;
+}
 
 function buildAuthorPages(articles) {
 
@@ -3350,6 +3399,27 @@ function copyAssets() {
 
 
 
+  const LANDING_DIR = path.join(ROOT, 'uk-visa-checklist');
+  if (fs.existsSync(LANDING_DIR)) {
+    const dest = path.join(OUT, 'uk-visa-checklist');
+    fs.mkdirSync(dest, { recursive: true });
+    for (const f of fs.readdirSync(LANDING_DIR)) {
+      const src = path.join(LANDING_DIR, f);
+      if (fs.statSync(src).isFile()) fs.copyFileSync(src, path.join(dest, f));
+    }
+  }
+
+  // Copy downloads/ (lead-magnet PDFs etc.)
+  const DL_DIR = path.join(ROOT, 'downloads');
+  if (fs.existsSync(DL_DIR)) {
+    const dest = path.join(OUT, 'downloads');
+    fs.mkdirSync(dest, { recursive: true });
+    for (const f of fs.readdirSync(DL_DIR)) {
+      const src = path.join(DL_DIR, f);
+      if (fs.statSync(src).isFile()) fs.copyFileSync(src, path.join(dest, f));
+    }
+  }
+
   console.log('  Copied assets (css, js, images, favicon)');
 
 }
@@ -3592,7 +3662,26 @@ function main() {
 
   console.log(`  Built: ${articles.length} article pages`);
 
+  // Copy hand-authored static article pages (cornerstone guides etc.)
+  const STATIC_ARTICLES = path.join(ROOT, 'static-articles');
+  if (fs.existsSync(STATIC_ARTICLES)) {
+    fs.mkdirSync(path.join(OUT, 'articles'), { recursive: true });
+    for (const f of fs.readdirSync(STATIC_ARTICLES)) {
+      const src = path.join(STATIC_ARTICLES, f);
+      if (fs.statSync(src).isFile()) fs.copyFileSync(src, path.join(OUT, 'articles', f));
+    }
+    console.log('  Copied static article pages');
+  }
 
+
+
+  // Redirects (301-equivalent via meta refresh + canonical + noindex)
+  let redirects = {};
+  const rPath = path.join(ROOT, 'data', 'redirects.json');
+  if (fs.existsSync(rPath)) {
+    try { redirects = JSON.parse(fs.readFileSync(rPath, 'utf-8')); } catch (e) { redirects = {}; }
+  }
+  buildRedirects(redirects);
 
   // Static pages
 
@@ -3626,7 +3715,7 @@ function main() {
 
   // Static landing pages (ebooks)
 
-  const landingFiles = ['tiktok-viral-prompt-pack.html', 'rooted-praying.html'];
+  const landingFiles = ['tiktok-viral-prompt-pack.html', 'rooted-praying.html', 'how-we-report.html', 'corrections.html', 'affiliate-disclosure.html'];
 
   for (const lf of landingFiles) {
 
