@@ -1826,6 +1826,9 @@
   ],
   "fg-moves-to-curb-unauthorised-gmo-imports": [
    "2026-11-26T15:56:50.509693+00:00"
+  ],
+  "2027-violence-intimidation-use-of-thugs-may-discourage-voters-amupitan-warns-pol": [
+   "2026-11-26T16:07:21.076307+00:00"
   ]
  },
  "days": {
@@ -1839,9 +1842,9 @@
   "2026-11-23": 72,
   "2026-11-24": 146,
   "2026-11-25": 8,
-  "2026-11-26": 16
+  "2026-11-26": 17
  },
- "last_ts": "2026-11-26T15:56:50.509693+00:00",
+ "last_ts": "2026-11-26T16:07:21.076307+00:00",
  "nogood": 0,
  "img_hashes": [
   "bf08eaa00ee60b68a42a350d9eb3dc45",
@@ -1899,6 +1902,7 @@
   "e46f1b516c692849d5bba9f28da477e3",
   "d2067485adadd4dff8509b7117c46167",
   "e8c174c4349c603eec320acd4b5e3fdf",
-  "f42560946d346a9b8bc248d8fb0c1e23"
+  "f42560946d346a9b8bc248d8fb0c1e23",
+  "6e5aa70bf7c0ad9ca01ee6b25ef59c62"
  ]
 }
