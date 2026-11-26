@@ -1994,6 +1994,9 @@
   ],
   "imo-apc-accuses-wike-of-plotting-to-manipulate-2027-elections": [
    "2026-11-26T20:51:15.807737+00:00"
+  ],
+  "2027-ogun-adc-accepts-supreme-court-ruling-backs-ogundipe-as-guber-candidate": [
+   "2026-11-26T21:31:15.807906+00:00"
   ]
  },
  "days": {
@@ -2007,12 +2010,11 @@
   "2026-11-23": 72,
   "2026-11-24": 146,
   "2026-11-25": 8,
-  "2026-11-26": 72
+  "2026-11-26": 73
  },
- "last_ts": "2026-11-26T20:51:15.807737+00:00",
+ "last_ts": "2026-11-26T21:31:15.807906+00:00",
  "nogood": 0,
  "img_hashes": [
-  "be54b5fdb247e25975c4531c713b4bc1",
   "e4c9d4b754552d398c4825e4c1d2f4dd",
   "e7f7b1a12163a959e4cd520ad22f2300",
   "9637a8334de0f249ecd2511c93a6464b",
@@ -2071,6 +2073,7 @@
   "0f2a1320818afcf1ca24344da4827545",
   "d2c0d5aeb44e3a4266dd444d4db0d5b6",
   "43c747acad3e690a0d725f9d9da524a4",
-  "7c4fa837026d172fb02cde2c6d3e6cd5"
+  "7c4fa837026d172fb02cde2c6d3e6cd5",
+  "5397501139dbf2d81089d14f990d5dac"
  ]
 }
