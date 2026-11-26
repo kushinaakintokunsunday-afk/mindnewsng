@@ -1868,6 +1868,9 @@
   ],
   "referee-replaced-at-half-time-after-manager-accuses-him-of-being-drunk": [
    "2026-11-26T17:10:40.473986+00:00"
+  ],
+  "rename-national-theatre-after-pete-edochie-brymo-tells-tinubu": [
+   "2026-11-26T17:21:09.318118+00:00"
   ]
  },
  "days": {
@@ -1881,12 +1884,11 @@
   "2026-11-23": 72,
   "2026-11-24": 146,
   "2026-11-25": 8,
-  "2026-11-26": 30
+  "2026-11-26": 31
  },
- "last_ts": "2026-11-26T17:10:40.473986+00:00",
+ "last_ts": "2026-11-26T17:21:09.318118+00:00",
  "nogood": 0,
  "img_hashes": [
-  "6fb15f7dfe52bcfb646f8c60662df022",
   "524b4a4cbf6641967ac6cc25ec9d04be",
   "4a51fd4f380b13dfc7384ed013736d7a",
   "ae492df993e72854fcf13b5e1da85ee3",
@@ -1945,6 +1947,7 @@
   "0d2b23e19268a9ae13ff70f4951ef08c",
   "dbab14b8e13dfa6e56a1db7a46fa02c1",
   "d6dfe02432ef1f55438d687f2bc99533",
-  "2e985fb650130f2d946b2577bdd69c74"
+  "2e985fb650130f2d946b2577bdd69c74",
+  "ebaf4855086989d11b37ce4f90c69159"
  ]
 }
