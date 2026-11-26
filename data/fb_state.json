@@ -1856,6 +1856,9 @@
   ],
   "police-deny-vendetta-in-detention-of-two-activists-in-ogun": [
    "2026-11-26T16:49:41.449087+00:00"
+  ],
+  "2027-oyo-adc-guber-candidate-heads-to-appeal-court": [
+   "2026-11-26T17:00:11.947822+00:00"
   ]
  },
  "days": {
@@ -1869,12 +1872,11 @@
   "2026-11-23": 72,
   "2026-11-24": 146,
   "2026-11-25": 8,
-  "2026-11-26": 26
+  "2026-11-26": 27
  },
- "last_ts": "2026-11-26T16:49:41.449087+00:00",
+ "last_ts": "2026-11-26T17:00:11.947822+00:00",
  "nogood": 0,
  "img_hashes": [
-  "bf08eaa00ee60b68a42a350d9eb3dc45",
   "e763cc80c6439545682221d8324ca659",
   "faaad8b7b66fae2f5a7e342de5ba699d",
   "6fb15f7dfe52bcfb646f8c60662df022",
@@ -1933,6 +1935,7 @@
   "6e5aa70bf7c0ad9ca01ee6b25ef59c62",
   "70da756bb682877654a51e1ba4548472",
   "dc10ce597296f71db2980bb88217e8c9",
-  "0d2b23e19268a9ae13ff70f4951ef08c"
+  "0d2b23e19268a9ae13ff70f4951ef08c",
+  "dbab14b8e13dfa6e56a1db7a46fa02c1"
  ]
 }
