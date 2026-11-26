@@ -1916,6 +1916,9 @@
   ],
   "18-year-old-british-footballer-shot-dead-in-us": [
    "2026-11-26T18:34:24.842517+00:00"
+  ],
+  "gunmen-kill-16-injure-four-in-overnight-attack-on-plateau-community": [
+   "2026-11-26T18:44:53.289276+00:00"
   ]
  },
  "days": {
@@ -1929,12 +1932,11 @@
   "2026-11-23": 72,
   "2026-11-24": 146,
   "2026-11-25": 8,
-  "2026-11-26": 46
+  "2026-11-26": 47
  },
- "last_ts": "2026-11-26T18:34:24.842517+00:00",
+ "last_ts": "2026-11-26T18:44:53.289276+00:00",
  "nogood": 0,
  "img_hashes": [
-  "98bb50500ae4d705a1ae091dd042cfd7",
   "572e051e99aea065e852f7a130776ec3",
   "699579895834a71d8a3fa17b4f15e22b",
   "48ad673ffadc5efb29fc76ce5a08a3f5",
@@ -1993,6 +1995,7 @@
   "ebaf4855086989d11b37ce4f90c69159",
   "82f7e1f2d6ba10b9a84a5f80e4bef26d",
   "dadbae0c416060c683e9552eb4cfd3ed",
-  "21454fa0d179d0873bf5ea7da8de4692"
+  "21454fa0d179d0873bf5ea7da8de4692",
+  "d8b0e579105c0742f2dce288d25069e8"
  ]
 }
