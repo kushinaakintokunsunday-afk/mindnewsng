@@ -1850,6 +1850,9 @@
   ],
   "iraq-denies-reports-of-troop-movements-towards-kurdish-region": [
    "2026-11-26T16:39:11.669841+00:00"
+  ],
+  "highway-explosion-in-giza-how-deadly-are-egypt-s-roads-and-railways": [
+   "2026-11-26T16:49:41.449087+00:00"
   ]
  },
  "days": {
@@ -1863,9 +1866,9 @@
   "2026-11-23": 72,
   "2026-11-24": 146,
   "2026-11-25": 8,
-  "2026-11-26": 24
+  "2026-11-26": 25
  },
- "last_ts": "2026-11-26T16:39:11.669841+00:00",
+ "last_ts": "2026-11-26T16:49:41.449087+00:00",
  "nogood": 0,
  "img_hashes": [
   "bf08eaa00ee60b68a42a350d9eb3dc45",
