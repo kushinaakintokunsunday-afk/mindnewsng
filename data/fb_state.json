@@ -2018,6 +2018,9 @@
   ],
   "cbn-appoints-murtala-mohammed-to-head-keystone-bank": [
    "2026-11-26T23:32:49.483952+00:00"
+  ],
+  "sanwo-olu-suspends-november-environmental-sanitation-for-inec-mock-polls": [
+   "2026-11-27T14:41:49.749005+00:00"
   ]
  },
  "days": {
@@ -2031,9 +2034,10 @@
   "2026-11-23": 72,
   "2026-11-24": 146,
   "2026-11-25": 8,
-  "2026-11-26": 80
+  "2026-11-26": 80,
+  "2026-11-27": 1
  },
- "last_ts": "2026-11-26T23:32:49.483952+00:00",
+ "last_ts": "2026-11-27T14:41:49.749005+00:00",
  "nogood": 0,
  "img_hashes": [
   "e7f7b1a12163a959e4cd520ad22f2300",
