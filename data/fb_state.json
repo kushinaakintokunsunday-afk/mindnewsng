@@ -2090,6 +2090,9 @@
   ],
   "why-benjamin-netanyahu-s-corruption-trial-could-be-unravelling": [
    "2026-11-27T16:38:17.899124+00:00"
+  ],
+  "powerful-storm-disrupts-us-thanksgiving-leaves-over-900-000-without-power": [
+   "2026-11-27T16:48:47.013625+00:00"
   ]
  },
  "days": {
@@ -2104,12 +2107,11 @@
   "2026-11-24": 146,
   "2026-11-25": 8,
   "2026-11-26": 80,
-  "2026-11-27": 24
+  "2026-11-27": 25
  },
- "last_ts": "2026-11-27T16:38:17.899124+00:00",
+ "last_ts": "2026-11-27T16:48:47.013625+00:00",
  "nogood": 0,
  "img_hashes": [
-  "d14eed3e88fa236ebeef4018aa50d36d",
   "b61a01343daa4fb6a5de1f6b4deef351",
   "b7b6934b26c5405799d77cf56b0a6623",
   "5f9551d2c858821528c3402b8895ccb0",
@@ -2168,6 +2170,7 @@
   "5b7bbb3daa0e1f076d7074fc73801647",
   "0482218285a0b19bd763c4608f573900",
   "dcb1a94c8676d6637a4ddd087267885d",
-  "b86124605c64e5ea37d2470643bc317e"
+  "b86124605c64e5ea37d2470643bc317e",
+  "558fc6ac7ca85ce12b4134f7b5ddf450"
  ]
 }
