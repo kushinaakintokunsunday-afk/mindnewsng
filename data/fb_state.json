@@ -2141,6 +2141,9 @@
   ],
   "noun-vc-warns-against-allowing-ai-to-replace-teachers-students": [
    "2026-11-27T18:12:54.728331+00:00"
+  ],
+  "sanwo-olu-cancels-november-sanitation-exercise-for-inec-mock-polls": [
+   "2026-11-27T18:12:54.728331+00:00"
   ]
  },
  "days": {
@@ -2155,12 +2158,11 @@
   "2026-11-24": 146,
   "2026-11-25": 8,
   "2026-11-26": 80,
-  "2026-11-27": 41
+  "2026-11-27": 42
  },
  "last_ts": "2026-11-27T18:12:54.728331+00:00",
  "nogood": 0,
  "img_hashes": [
-  "25a3945547ed78195c402ccbdfb83340",
   "868a7b945504db9d564eb89993a549db",
   "01786c00aa4b4f186476804156cc3c29",
   "0628295ba83878750350d771a0773661",
@@ -2219,6 +2221,7 @@
   "ccc3f3a0846f058d116b11f360ab8e66",
   "fc250d46fb171c89dfbce6cfcca2324a",
   "9627c4fce4b638b4f798289aa67f7e50",
-  "11abcd70ee8892ef48846c2f0f98d983"
+  "11abcd70ee8892ef48846c2f0f98d983",
+  "80392bcfd9e1fa8ad60eb5b8427cc07d"
  ]
 }
