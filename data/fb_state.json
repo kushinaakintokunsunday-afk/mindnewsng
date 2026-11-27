@@ -2249,6 +2249,9 @@
   ],
   "enugu-govt-orders-temporary-closure-major-roads-ahead-of-tinubu-s-campaign-visit": [
    "2026-11-27T22:50:56.729264+00:00"
+  ],
+  "tinubu-approves-anambra-free-trade-zone-road-projects": [
+   "2026-11-27T22:50:56.729264+00:00"
   ]
  },
  "days": {
@@ -2263,12 +2266,11 @@
   "2026-11-24": 146,
   "2026-11-25": 8,
   "2026-11-26": 80,
-  "2026-11-27": 77
+  "2026-11-27": 78
  },
  "last_ts": "2026-11-27T22:50:56.729264+00:00",
  "nogood": 0,
  "img_hashes": [
-  "a0cc52221c88e106516145e1fb890705",
   "ef08eec94b5f070849c24ef033941615",
   "51e3f4a310a75e5bfcf193baa5654379",
   "ee1016f60627388fe7037f4569b025c9",
@@ -2327,6 +2329,7 @@
   "ef3ee28ed221e2ef3fc9420adb1f04e5",
   "b096d567bd4f1b0b7370a3dc70e63445",
   "49ffad5652f0242c5a32f754ff55c194",
-  "ca600c0875e50864cd6eecaae51167af"
+  "ca600c0875e50864cd6eecaae51167af",
+  "97526c38c3de531c0a7362c28fb3a5ee"
  ]
 }
