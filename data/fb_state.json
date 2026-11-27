@@ -2144,6 +2144,9 @@
   ],
   "sanwo-olu-cancels-november-sanitation-exercise-for-inec-mock-polls": [
    "2026-11-27T18:12:54.728331+00:00"
+  ],
+  "in-defence-of-jankara-diplomacy-when-quiet-diplomacy-has-not-worked-by-olabisi-d": [
+   "2026-11-27T18:23:31.337140+00:00"
   ]
  },
  "days": {
@@ -2158,12 +2161,11 @@
   "2026-11-24": 146,
   "2026-11-25": 8,
   "2026-11-26": 80,
-  "2026-11-27": 42
+  "2026-11-27": 43
  },
- "last_ts": "2026-11-27T18:12:54.728331+00:00",
+ "last_ts": "2026-11-27T18:23:31.337140+00:00",
  "nogood": 0,
  "img_hashes": [
-  "868a7b945504db9d564eb89993a549db",
   "01786c00aa4b4f186476804156cc3c29",
   "0628295ba83878750350d771a0773661",
   "f14d82bc6d8182d12bcdae2418ea0ae1",
@@ -2222,6 +2224,7 @@
   "fc250d46fb171c89dfbce6cfcca2324a",
   "9627c4fce4b638b4f798289aa67f7e50",
   "11abcd70ee8892ef48846c2f0f98d983",
-  "80392bcfd9e1fa8ad60eb5b8427cc07d"
+  "80392bcfd9e1fa8ad60eb5b8427cc07d",
+  "1f6fd474b2a6a94fb396c2c1b888f9b7"
  ]
 }
