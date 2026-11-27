@@ -2168,6 +2168,9 @@
   ],
   "conflicts-el-ni-o-worsening-global-hunger-un": [
    "2026-11-27T18:54:51.347542+00:00"
+  ],
+  "2027-election-inec-procures-57-000-new-bvas-devices": [
+   "2026-11-27T19:05:22.360473+00:00"
   ]
  },
  "days": {
@@ -2182,12 +2185,11 @@
   "2026-11-24": 146,
   "2026-11-25": 8,
   "2026-11-26": 80,
-  "2026-11-27": 50
+  "2026-11-27": 51
  },
- "last_ts": "2026-11-27T18:54:51.347542+00:00",
+ "last_ts": "2026-11-27T19:05:22.360473+00:00",
  "nogood": 0,
  "img_hashes": [
-  "f14d82bc6d8182d12bcdae2418ea0ae1",
   "3d6dc090c88ec2ef21d9cc6abeb54b61",
   "5711719967d6f6b76643bc80898cedf3",
   "5506adc981464e32f2aa51805f6d5ea0",
@@ -2246,6 +2248,7 @@
   "80392bcfd9e1fa8ad60eb5b8427cc07d",
   "1f6fd474b2a6a94fb396c2c1b888f9b7",
   "7b6ea45c3ec1c9dcc280b06f6b179aba",
-  "c878c51dea6e06228b3b78fe73f1d9ea"
+  "c878c51dea6e06228b3b78fe73f1d9ea",
+  "dce5c224ca7cfd6492dc23eb888c112b"
  ]
 }
