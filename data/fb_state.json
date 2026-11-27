@@ -2216,6 +2216,9 @@
   ],
   "democrats-want-to-end-trump-s-iran-war-but-how-different-are-they": [
    "2026-11-27T20:18:43.534993+00:00"
+  ],
+  "mock-accreditation-sanwo-olu-cancels-november-environmental-sanitation-exercise": [
+   "2026-11-27T20:29:08.312016+00:00"
   ]
  },
  "days": {
@@ -2230,12 +2233,11 @@
   "2026-11-24": 146,
   "2026-11-25": 8,
   "2026-11-26": 80,
-  "2026-11-27": 66
+  "2026-11-27": 67
  },
- "last_ts": "2026-11-27T20:18:43.534993+00:00",
+ "last_ts": "2026-11-27T20:29:08.312016+00:00",
  "nogood": 0,
  "img_hashes": [
-  "2da8a4539d2f55d6c3cc663e4857e877",
   "8caa4cf7a496958b6f5286b55a8774e2",
   "1071b7ced49efe61502e22456a30b7e9",
   "e244bd2f821fcac91bda0673f9ea172b",
@@ -2294,6 +2296,7 @@
   "dce5c224ca7cfd6492dc23eb888c112b",
   "6631316cd7b56c4e53ae8a5daad911d8",
   "fcdee1efd06d624cd1856bb8ae8a59e2",
-  "8de9a2ba497939dd5251e9a43f046d67"
+  "8de9a2ba497939dd5251e9a43f046d67",
+  "5131a7cb567df916de3aeae8102092aa"
  ]
 }
