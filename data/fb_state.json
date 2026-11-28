@@ -2270,6 +2270,9 @@
   ],
   "three-killed-houses-burnt-in-cross-river-communal-clash": [
    "2026-11-28T14:03:08.877088+00:00"
+  ],
+  "cholera-fcta-activates-emergency-operations-centre-in-abuja": [
+   "2026-11-28T14:13:38.084472+00:00"
   ]
  },
  "days": {
@@ -2285,12 +2288,11 @@
   "2026-11-25": 8,
   "2026-11-26": 80,
   "2026-11-27": 80,
-  "2026-11-28": 4
+  "2026-11-28": 5
  },
- "last_ts": "2026-11-28T14:03:08.877088+00:00",
+ "last_ts": "2026-11-28T14:13:38.084472+00:00",
  "nogood": 0,
  "img_hashes": [
-  "ee1016f60627388fe7037f4569b025c9",
   "773d955e7125c0f6ed79818c22bd78be",
   "df5160d8e059090ef4586afbf197035f",
   "efbe97176271efcdf0999ac15a472a69",
@@ -2349,6 +2351,7 @@
   "ca600c0875e50864cd6eecaae51167af",
   "97526c38c3de531c0a7362c28fb3a5ee",
   "eaf29529a7bef9114801f8a771c98d5f",
-  "69d05da8b6668ac1d0c5746a5389908e"
+  "69d05da8b6668ac1d0c5746a5389908e",
+  "3db428d5b607c262c956d2c54f585db2"
  ]
 }
